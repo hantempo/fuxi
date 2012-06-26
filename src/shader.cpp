@@ -14,7 +14,7 @@
  */
 
 #include "shader.h"
-#include "cube.h"
+#include "common.h"
 
 /* 
  * Loads the shader source into memory.
