@@ -11,6 +11,8 @@ link_directories (/scratch/tiahan01/source_depot/PR400/trunk_profiling/lib)
 
 add_executable (fuxi
     src/main.cpp
+    src/common.cpp
+    src/geometry.cpp
     src/matrix.cpp
     src/shader.cpp
 )

@@ -1,10 +1,13 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include <cstring>
+#include <string>
+#include <GLES2/gl2.h>
+#include <EGL/egl.h>
 
 #define FUXI_PRINTF printf
 #define FUXI_ASSERT_QUIT exit(1)
@@ -27,6 +30,19 @@
     }
 
 #define FUXI_DEBUG_ASSERT_POINTER(pointer) FUXI_DEBUG_ASSERT(pointer, ("Null pointer " #pointer) )
+
+class FBDevContext
+{
+public:
+   FBDevContext(unsigned int width, unsigned int height);
+   ~FBDevContext();
+   bool swap_buffer();
+
+private:
+    EGLDisplay display;
+    EGLContext context;
+    EGLSurface surface;
+};
 
 typedef struct {
 	float x, y, z;

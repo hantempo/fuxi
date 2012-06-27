@@ -8,17 +8,10 @@
  * by a licensing agreement from ARM Limited.
  */
 
-#include <unistd.h>
-#include <string>
 #include "common.h"
 #include "shader.h"
-//#include "window.h"
 #include "matrix.h"
-
-#include "GLES2/gl2.h"
-#include "EGL/egl.h"
-
-#include "objLoader/objLoader.h"
+#include "geometry.h"
 
 // Load a bitmap from disk
 unsigned char *LoadBitmapFile(const char *filename, BITMAPINFOHEADER *bitmapInfoHeader)
@@ -113,82 +106,28 @@ unsigned char *LoadBitmapFile(const char *filename, BITMAPINFOHEADER *bitmapInfo
     return bitmapImage;
 }
 
-struct fbdev_window
-{
-    unsigned short width;
-    unsigned short height;
-};
-
 int main(int argc, char **argv) {
-	EGLDisplay	sEGLDisplay;
-	EGLContext	sEGLContext;
-	EGLSurface	sEGLSurface;
-	
-	/* EGL Configuration */
-	
-	EGLint aEGLAttributes[] = {
-		EGL_RED_SIZE, 8,
-		EGL_GREEN_SIZE, 8,
-		EGL_BLUE_SIZE, 8,
-		EGL_DEPTH_SIZE, 16,
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-		EGL_NONE
-	};
 
-	EGLint aEGLContextAttributes[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2,
-		EGL_NONE
-	};
-	
-	EGLConfig	aEGLConfigs[1];
-	EGLint		cEGLConfigs;
-
-	const unsigned int WIDTH  = 1280;
-	const unsigned int HEIGHT = 720;
-	
-	int iXangle = 0, iYangle = 0, iZangle = 0;
-	
-	float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
-	
-	unsigned char *myPixels = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
-	unsigned char *myPixels2 = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
-	
-	float aRotate[16], aModelView[16], aPerspective[16], aMVP[16];
-	
-	sEGLDisplay = EGL_CHECK(eglGetDisplay((EGLNativeDisplayType)EGL_DEFAULT_DISPLAY));	
-	EGL_CHECK(eglInitialize(sEGLDisplay, NULL, NULL));
-    EGL_CHECK(eglChooseConfig(sEGLDisplay, aEGLAttributes, aEGLConfigs, 1, &cEGLConfigs));
-    if (cEGLConfigs == 0) {
-        printf("No EGL configurations were returned.\n");
-        exit(-1);
-    }
-
-    fbdev_window hWindow;
-    hWindow.width = static_cast<unsigned short>(WIDTH);
-    hWindow.height = static_cast<unsigned short>(HEIGHT);
-	sEGLSurface = EGL_CHECK(eglCreateWindowSurface(sEGLDisplay, aEGLConfigs[0], (EGLNativeWindowType)&hWindow, NULL));
-    if (sEGLSurface == EGL_NO_SURFACE) {
-        printf("Failed to create EGL surface.\n");
-		exit(-1);
-    }
-
-    sEGLContext = EGL_CHECK(eglCreateContext(sEGLDisplay, aEGLConfigs[0], EGL_NO_CONTEXT, aEGLContextAttributes));
-    if (sEGLContext == EGL_NO_CONTEXT) {
-        printf("Failed to create EGL context.\n");
-        exit(-1);
-    }
-
-    GLuint error;
+    const unsigned int WIDTH  = 1280;
+    const unsigned int HEIGHT = 720;
+    FBDevContext context(WIDTH, HEIGHT);
     
-	EGL_CHECK(eglMakeCurrent(sEGLDisplay, sEGLSurface, sEGLSurface, sEGLContext));
-
+    int iXangle = 0, iYangle = 0, iZangle = 0;
+    
+    float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
+    
+    unsigned char *myPixels = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
+    unsigned char *myPixels2 = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
+    
+    float aRotate[16], aModelView[16], aPerspective[16], aMVP[16];
+    
     const char* data_path_ptr = getenv("FUXI_DATA_PATH");
     FUXI_DEBUG_ASSERT_POINTER(data_path_ptr);
     const std::string data_path(data_path_ptr);
 
-	GLuint uiProgram, uiFragShader, uiVertShader;
-	process_shader(&uiVertShader, (data_path + "/shader/shader.vert").c_str(), GL_VERTEX_SHADER);
-	process_shader(&uiFragShader, (data_path + "/shader/shader.frag").c_str(), GL_FRAGMENT_SHADER);
+    GLuint uiProgram, uiFragShader, uiVertShader;
+    process_shader(&uiVertShader, (data_path + "/shader/shader.vert").c_str(), GL_VERTEX_SHADER);
+    process_shader(&uiFragShader, (data_path + "/shader/shader.frag").c_str(), GL_FRAGMENT_SHADER);
 
     uiProgram = GL_CHECK(glCreateProgram());
     GL_CHECK(glAttachShader(uiProgram, uiVertShader));
@@ -209,59 +148,28 @@ int main(int argc, char **argv) {
     // Load the model from obj file
     const char * obj_filename = argv[1];
     const std::string obj_filepath = data_path + "/model/" + obj_filename;
-    objLoader *objData = new objLoader();
-    FUXI_DEBUG_ASSERT(objData->load(obj_filepath.c_str()), "Failed to load obj file");
+    const Geometry geometry(obj_filepath.c_str());
+    FUXI_DEBUG_ASSERT(geometry.triangle_count(), "No faces in model.");
 
-#ifndef NDEBUG
-    printf("Loaded OBJ file: %s\n", obj_filepath.c_str());
-    printf("Number of vertices: %i\n", objData->vertexCount);
-    printf("Number of vertex normals: %i\n", objData->normalCount);
-    printf("Number of texture coordinates: %i\n", objData->textureCount);
-
-    printf("Number of faces: %i\n", objData->faceCount);
-#endif
-
-    // Load vertex attributes into VBO
-    FUXI_DEBUG_ASSERT(objData->vertexCount, "No vertex position data.");
-    float *position = new float[objData->vertexCount * 3];
-    for (int i = 0; i < objData->vertexCount; ++i)
-    {
-        const obj_vector *pos = objData->vertexList[i];
-        memcpy(position + i * 3, pos->e, sizeof(float) * 3);
-    }
-    unsigned short *index = new unsigned short[objData->faceCount * 3];
-    for (int i = 0; i < objData->faceCount; ++i)
-    {
-        obj_face *f = objData->faceList[i];
-        FUXI_DEBUG_ASSERT(f->vertex_count == 3, "Only accept triangle face");
-        const unsigned short vi0 = static_cast<unsigned short>(f->vertex_index[0]);
-        const unsigned short vi1 = static_cast<unsigned short>(f->vertex_index[1]);
-        const unsigned short vi2 = static_cast<unsigned short>(f->vertex_index[2]);
-        index[i * 3 + 0] = vi0;
-        index[i * 3 + 1] = vi1;
-        index[i * 3 + 2] = vi2;
-    }
-
-    /* Populate attributes for position, colour and texture coordinates etc. */
-    GL_CHECK(glVertexAttribPointer(iLocPosition, 3, GL_FLOAT, GL_FALSE, 0, position));
+    geometry.enable_position_attribute(iLocPosition);
     
     GL_CHECK(glEnable(GL_CULL_FACE));
     GL_CHECK(glEnable(GL_DEPTH_TEST));
     
-	/* Enter event loop */
+    /* Enter event loop */
     int count = 0;
-	while (count < 200) {
-		/* 
-		 * Do some rotation with Euler angles. It is not a fixed axis as
+    while (count < 200) {
+        /* 
+         * Do some rotation with Euler angles. It is not a fixed axis as
          * quaterions would be, but the effect is cool. 
-		 */
+         */
         rotate_matrix(iXangle, 1.0, 0.0, 0.0, aModelView);
         rotate_matrix(iYangle, 0.0, 1.0, 0.0, aRotate);
         multiply_matrix(aRotate, aModelView, aModelView);
         rotate_matrix(iZangle, 0.0, 1.0, 0.0, aRotate);
         multiply_matrix(aRotate, aModelView, aModelView);
 
-		/* Pull the camera back from the cube */
+        /* Pull the camera back from the cube */
         aModelView[14] -= 15;
         aModelView[13] -= 5;
 
@@ -285,29 +193,22 @@ int main(int argc, char **argv) {
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
         
         GL_CHECK(glUniformMatrix4fv(iLocMVP, 1, GL_FALSE, aMVP));
-        GL_CHECK(glDrawElements(GL_TRIANGLES, objData->faceCount * 3, GL_UNSIGNED_SHORT, index));
+        geometry.draw();
 
-        if (!eglSwapBuffers(sEGLDisplay, sEGLSurface)) 
+        if (!context.swap_buffer()) 
         {
             printf("Failed to swap buffers.\n");
         }
 
         count++;
-		usleep(20000);
-	}
-	
-	/* Cleanup shaders */
+        usleep(20000);
+    }
+    
+    /* Cleanup shaders */
     GL_CHECK(glUseProgram(0));
     GL_CHECK(glDeleteShader(uiVertShader));
     GL_CHECK(glDeleteShader(uiFragShader));
     GL_CHECK(glDeleteProgram(uiProgram));
     
-    /* EGL clean up */
-    EGL_CHECK(eglDestroySurface(sEGLDisplay, sEGLSurface));
-    EGL_CHECK(eglDestroyContext(sEGLDisplay, sEGLContext));
-    EGL_CHECK(eglTerminate(sEGLDisplay));
-
-    delete objData;
-	
-	return 0;
+    return 0;
 }
