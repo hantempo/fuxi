@@ -113,158 +113,6 @@ unsigned char *LoadBitmapFile(const char *filename, BITMAPINFOHEADER *bitmapInfo
     return bitmapImage;
 }
 
-/* 3D data. Vertex range -0.5..0.5 in all axes.
- * Z -0.5 is near, 0.5 is far. */
-const float aVertices[] =
-{
-    /* Front face. */
-    /* Bottom left */
-    -0.5,  0.5, -0.5,
-    0.5, -0.5, -0.5,
-    -0.5, -0.5, -0.5,
-    /* Top right */
-    -0.5,  0.5, -0.5,
-    0.5,  0.5, -0.5,
-    0.5, -0.5, -0.5,
-    /* Left face */
-    /* Bottom left */
-    -0.5,  0.5,  0.5,
-    -0.5, -0.5, -0.5,
-    -0.5, -0.5,  0.5,
-    /* Top right */
-    -0.5,  0.5,  0.5,
-    -0.5,  0.5, -0.5,
-    -0.5, -0.5, -0.5,
-    /* Top face */
-    /* Bottom left */
-    -0.5,  0.5,  0.5,
-    0.5,  0.5, -0.5,
-    -0.5,  0.5, -0.5,
-    /* Top right */
-    -0.5,  0.5,  0.5,
-    0.5,  0.5,  0.5,
-    0.5,  0.5, -0.5,
-    /* Right face */
-    /* Bottom left */
-    0.5,  0.5, -0.5,
-    0.5, -0.5,  0.5,
-    0.5, -0.5, -0.5,
-    /* Top right */
-    0.5,  0.5, -0.5,
-    0.5,  0.5,  0.5,
-    0.5, -0.5,  0.5,
-    /* Back face */
-    /* Bottom left */
-    0.5,  0.5,  0.5,
-    -0.5, -0.5,  0.5,
-    0.5, -0.5,  0.5,
-    /* Top right */
-    0.5,  0.5,  0.5,
-    -0.5,  0.5,  0.5,
-    -0.5, -0.5,  0.5,
-    /* Bottom face */
-    /* Bottom left */
-    -0.5, -0.5, -0.5,
-    0.5, -0.5,  0.5,
-    -0.5, -0.5,  0.5,
-    /* Top right */
-    -0.5, -0.5, -0.5,
-    0.5, -0.5, -0.5,
-    0.5, -0.5,  0.5,
-};
-
-const float aTexCoords[] =
-{
-    0.0,  1.0,
-    1.0,  0.0,
-    0.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  1.0,
-    1.0,  0.0,
-
-
-    0.0,  1.0,
-    1.0,  0.0,
-    0.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  1.0,
-    1.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  0.0,
-    0.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  1.0,
-    1.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  0.0,
-    0.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  1.0,
-    1.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  0.0,
-    0.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  1.0,
-    1.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  0.0,
-    0.0,  0.0,
-
-    0.0,  1.0,
-    1.0,  1.0,
-    1.0,  0.0
-};
-
-const float aColours[] =
-{
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0
-};
-
 struct fbdev_window
 {
     unsigned short width;
@@ -295,32 +143,10 @@ int main(int argc, char **argv) {
 	EGLConfig	aEGLConfigs[1];
 	EGLint		cEGLConfigs;
 
-	GLint iLocPosition = 0;
-
-	GLint iLocColour, iLocTexCoord, iLocNormal, iLocMVP;
-	GLint iLocXangle, iLocYangle, iLocZangle;
-	GLint iLocAspect, iLocLightPos, iLocSampler, iLocSampler2;
-
-	
-
-    GLint iLocPosition_pbuffer = 0;
-
-    GLint iLocColour_pbuffer, iLocTexCoord_pbuffer, iLocNormal_pbuffer, iLocMVP_pbuffer;
-    GLint iLocXangle_pbuffer, iLocYangle_pbuffer, iLocZangle_pbuffer;
-    GLint iLocAspect_pbuffer, iLocLightPos_pbuffer, iLocSampler_pbuffer, iLocSampler2_pbuffer;
-
-    GLuint uiProgram_pbuffer, uiFragShader_pbuffer, uiVertShader_pbuffer;
-
-	GLenum myTex, myTex2;
-
-	const unsigned int WIDTH  = 640;
-	const unsigned int HEIGHT = 480;
-	const unsigned int WIDTH_TEXTURE = 512;
-	const unsigned int HEIGHT_TEXTURE = 512;
+	const unsigned int WIDTH  = 1280;
+	const unsigned int HEIGHT = 720;
 	
 	int iXangle = 0, iYangle = 0, iZangle = 0;
-	
-	float aTBNmatrix1[9], aTBNmatrix2[9];
 	
 	float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
 	
@@ -328,9 +154,6 @@ int main(int argc, char **argv) {
 	unsigned char *myPixels2 = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
 	
 	float aRotate[16], aModelView[16], aPerspective[16], aMVP[16];
-	
-	int i;
-	
 	
 	sEGLDisplay = EGL_CHECK(eglGetDisplay((EGLNativeDisplayType)EGL_DEFAULT_DISPLAY));	
 	EGL_CHECK(eglInitialize(sEGLDisplay, NULL, NULL));
@@ -360,7 +183,7 @@ int main(int argc, char **argv) {
 	EGL_CHECK(eglMakeCurrent(sEGLDisplay, sEGLSurface, sEGLSurface, sEGLContext));
 
     const char* data_path_ptr = getenv("FUXI_DATA_PATH");
-    FUXI_CHECK(data_path_ptr, "Undefined FUXI_DATA_PATH");
+    FUXI_DEBUG_ASSERT_POINTER(data_path_ptr);
     const std::string data_path(data_path_ptr);
 
 	GLuint uiProgram, uiFragShader, uiVertShader;
@@ -373,97 +196,61 @@ int main(int argc, char **argv) {
     GL_CHECK(glLinkProgram(uiProgram));
 
     /* Get attribute locations of non-fixed attributes like colour and texture coordinates. */
-    iLocPosition = GL_CHECK(glGetAttribLocation(uiProgram, "av4position"));
-    iLocTexCoord = GL_CHECK(glGetAttribLocation(uiProgram, "av2texcoord"));
+    GLint iLocPosition = GL_CHECK(glGetAttribLocation(uiProgram, "in_position"));
 
     /* Get uniform locations */
-    iLocMVP = GL_CHECK(glGetUniformLocation(uiProgram, "mvp"));
+    GLint iLocMVP = GL_CHECK(glGetUniformLocation(uiProgram, "mvp"));
 
     GL_CHECK(glUseProgram(uiProgram));
 
     /* Enable attributes for position, colour and texture coordinates etc. */
     GL_CHECK(glEnableVertexAttribArray(iLocPosition));
-    GL_CHECK(glEnableVertexAttribArray(iLocTexCoord));
 
     // Load the model from obj file
-    const char * obj_filepath = argv[1];
+    const char * obj_filename = argv[1];
+    const std::string obj_filepath = data_path + "/model/" + obj_filename;
     objLoader *objData = new objLoader();
-    FUXI_CHECK(objData->load((data_path + "/model/" + obj_filepath).c_str()), "Failed to load obj file");
+    FUXI_DEBUG_ASSERT(objData->load(obj_filepath.c_str()), "Failed to load obj file");
 
 #ifndef NDEBUG
+    printf("Loaded OBJ file: %s\n", obj_filepath.c_str());
     printf("Number of vertices: %i\n", objData->vertexCount);
     printf("Number of vertex normals: %i\n", objData->normalCount);
     printf("Number of texture coordinates: %i\n", objData->textureCount);
-    printf("\n");
 
     printf("Number of faces: %i\n", objData->faceCount);
-    for(int i=0; i<objData->faceCount; i++)
-    {
-        obj_face *o = objData->faceList[i];
-        printf(" face ");
-        for(int j=0; j<3; j++)
-        {
-            const obj_vector *v = objData->vertexList[o->vertex_index[j]];
-            printf("%.2f,", v->e[0] );
-            printf("%.2f,", v->e[1] );
-            printf("%.2f ", v->e[2] );
-        }
-        printf("\n");
-    }
 #endif
 
+    // Load vertex attributes into VBO
+    FUXI_DEBUG_ASSERT(objData->vertexCount, "No vertex position data.");
+    float *position = new float[objData->vertexCount * 3];
+    for (int i = 0; i < objData->vertexCount; ++i)
+    {
+        const obj_vector *pos = objData->vertexList[i];
+        memcpy(position + i * 3, pos->e, sizeof(float) * 3);
+    }
+    unsigned short *index = new unsigned short[objData->faceCount * 3];
+    for (int i = 0; i < objData->faceCount; ++i)
+    {
+        obj_face *f = objData->faceList[i];
+        FUXI_DEBUG_ASSERT(f->vertex_count == 3, "Only accept triangle face");
+        const unsigned short vi0 = static_cast<unsigned short>(f->vertex_index[0]);
+        const unsigned short vi1 = static_cast<unsigned short>(f->vertex_index[1]);
+        const unsigned short vi2 = static_cast<unsigned short>(f->vertex_index[2]);
+        index[i * 3 + 0] = vi0;
+        index[i * 3 + 1] = vi1;
+        index[i * 3 + 2] = vi2;
+    }
+
     /* Populate attributes for position, colour and texture coordinates etc. */
-    GL_CHECK(glVertexAttribPointer(iLocPosition, 3, GL_FLOAT, GL_FALSE, 0, aVertices));
-    GL_CHECK(glVertexAttribPointer(iLocTexCoord, 2, GL_FLOAT, GL_FALSE, 0, aTexCoords));
+    GL_CHECK(glVertexAttribPointer(iLocPosition, 3, GL_FLOAT, GL_FALSE, 0, position));
     
     GL_CHECK(glEnable(GL_CULL_FACE));
     GL_CHECK(glEnable(GL_DEPTH_TEST));
     
-    BITMAPINFOHEADER bitmapInfoHeader;
-
-    // Create a texture
-    unsigned char *bitmapData = LoadBitmapFile((data_path + "/texture/Testnpot.bmp").c_str(), &bitmapInfoHeader);
-    if (bitmapData == NULL)
-    {
-        printf("Bitmap data is null");
-        return 0;
-    }
-    GLuint VBOTexture = 0;
-    glGenTextures(1, &VBOTexture);
-	glBindTexture(GL_TEXTURE_2D, VBOTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST/*GL_LINEAR_MIPMAP_LINEAR*/); 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bitmapInfoHeader.biWidth, bitmapInfoHeader.biHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, bitmapData);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-    GLuint BaseTexture = 0;
-    glGenTextures(1, &BaseTexture);
-    glBindTexture(GL_TEXTURE_2D, BaseTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST/*GL_LINEAR_MIPMAP_LINEAR*/);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH_TEXTURE, HEIGHT_TEXTURE, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-    error = glGetError();
-    if (error != GL_NO_ERROR)
-    {
-        printf("\nError Occured after ::glTexImage2D = %d at line = %d", error,__LINE__);
-    }
-    
-    // Create FBO render target
-    
-    GLuint FBO = 0;
-    GL_CHECK(glGenFramebuffers(1, &FBO));
-    GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, FBO));
-    GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, BaseTexture, 0));
-	
-    float r = 0.0f, g = 1.0f, delta = 0.01f;
 	/* Enter event loop */
     int count = 0;
-	while (count < 100) {
+	while (count < 200) {
 		/* 
 		 * Do some rotation with Euler angles. It is not a fixed axis as
          * quaterions would be, but the effect is cool. 
@@ -475,14 +262,15 @@ int main(int argc, char **argv) {
         multiply_matrix(aRotate, aModelView, aModelView);
 
 		/* Pull the camera back from the cube */
-        aModelView[14] -= 2.5;
+        aModelView[14] -= 15;
+        aModelView[13] -= 5;
 
         perspective_matrix(45.0, (double)WIDTH/(double)HEIGHT, 0.01, 100.0, aPerspective);
         multiply_matrix(aPerspective, aModelView, aMVP);
 
-		iXangle += 3;
+        //iXangle += 3;
         iYangle += 2;
-        iZangle += 1;
+        //iZangle += 1;
 
         if(iXangle >= 360) iXangle -= 360;
         if(iXangle < 0) iXangle += 360;
@@ -492,39 +280,16 @@ int main(int argc, char **argv) {
         if(iZangle < 0) iZangle += 360;
 
         ///////////////////////////////////////////////////////////////////
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-        
-        glViewport(0, 0, WIDTH_TEXTURE, HEIGHT_TEXTURE);
-        glClearColor(r,g,0.0f,1.0f);
-        //GL_CHECK(glClearColor(0.0f,0.0f,0.0f,0.0f));
-        GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-        
-        GL_CHECK(glUniformMatrix4fv(iLocMVP, 1, GL_FALSE, aMVP));
-        GL_CHECK(glBindTexture(GL_TEXTURE_2D, VBOTexture))
-        GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 36));
-
-        ///////////////////////////////////////////////////////////////////
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         glViewport(0, 0, WIDTH, HEIGHT);
         GL_CHECK(glClearColor(1.0f,1.0f,1.0f,1.0f));
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
         
         GL_CHECK(glUniformMatrix4fv(iLocMVP, 1, GL_FALSE, aMVP));
-        GL_CHECK(glBindTexture(GL_TEXTURE_2D, BaseTexture))
-        GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 36));
+        GL_CHECK(glDrawElements(GL_TRIANGLES, objData->faceCount * 3, GL_UNSIGNED_SHORT, index));
 
         if (!eglSwapBuffers(sEGLDisplay, sEGLSurface)) 
         {
             printf("Failed to swap buffers.\n");
-        }
-
-        r += delta;
-        g -= delta;
-
-        if (r > 1.0f || r < 0.0f)
-        {
-            delta = -delta;
         }
 
         count++;
@@ -537,8 +302,6 @@ int main(int argc, char **argv) {
     GL_CHECK(glDeleteShader(uiFragShader));
     GL_CHECK(glDeleteProgram(uiProgram));
     
-    GL_CHECK(glDeleteFramebuffers(1, &FBO));
-
     /* EGL clean up */
     EGL_CHECK(eglDestroySurface(sEGLDisplay, sEGLSurface));
     EGL_CHECK(eglDestroyContext(sEGLDisplay, sEGLContext));

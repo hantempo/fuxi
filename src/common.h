@@ -4,16 +4,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <cstring>
 
-#define FUXI_FATAL(msg) \
-    printf("Fatal error in line %d of %s : %s\n", __LINE__, __FILE__, msg); \
-    printf("Exit.\n"); \
-    exit(-1);
+#define FUXI_PRINTF printf
+#define FUXI_ASSERT_QUIT exit(1)
 
-#define FUXI_CHECK(condition, msg) \
-    if (!(condition)) { \
-        FUXI_FATAL(msg); \
+#define FUXI_DEBUG_TRACE \
+    FUXI_PRINTF( "In file: "__FILE__ "  line:%4d\n" , __LINE__)
+
+#define FUXI_DEBUG_ERROR_START printf("****************************************\n")
+#define FUXI_DEBUG_ERROR_END printf("\n")
+
+#define FUXI_DEBUG_ASSERT(expr, msg) \
+    if (!(expr)) \
+    { \
+        FUXI_DEBUG_ERROR_START; \
+        FUXI_PRINTF("ASSERT EXIT: "); \
+        FUXI_DEBUG_TRACE; \
+        FUXI_PRINTF(msg); \
+        FUXI_DEBUG_ERROR_END; \
+        FUXI_ASSERT_QUIT; \
     }
+
+#define FUXI_DEBUG_ASSERT_POINTER(pointer) FUXI_DEBUG_ASSERT(pointer, ("Null pointer " #pointer) )
 
 typedef struct {
 	float x, y, z;
