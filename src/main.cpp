@@ -10,7 +10,7 @@
 
 #include "common.h"
 #include "shader.h"
-#include "matrix.h"
+#include "math3d.h"
 #include "geometry.h"
 
 // Load a bitmap from disk
@@ -112,14 +112,12 @@ int main(int argc, char **argv) {
     const unsigned int HEIGHT = 720;
     FBDevContext context(WIDTH, HEIGHT);
     
-    int iXangle = 0, iYangle = 0, iZangle = 0;
+    int iYangle = 0;
     
     float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
     
     unsigned char *myPixels = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
     unsigned char *myPixels2 = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
-    
-    float aRotate[16], aModelView[16], aPerspective[16], aMVP[16];
     
     const char* data_path_ptr = getenv("FUXI_DATA_PATH");
     FUXI_DEBUG_ASSERT_POINTER(data_path_ptr);
@@ -159,40 +157,22 @@ int main(int argc, char **argv) {
     /* Enter event loop */
     int count = 0;
     while (count < 200) {
-        /* 
-         * Do some rotation with Euler angles. It is not a fixed axis as
-         * quaterions would be, but the effect is cool. 
-         */
-        rotate_matrix(iXangle, 1.0, 0.0, 0.0, aModelView);
-        rotate_matrix(iYangle, 0.0, 1.0, 0.0, aRotate);
-        multiply_matrix(aRotate, aModelView, aModelView);
-        rotate_matrix(iZangle, 0.0, 1.0, 0.0, aRotate);
-        multiply_matrix(aRotate, aModelView, aModelView);
 
-        /* Pull the camera back from the cube */
-        aModelView[14] -= 15;
-        aModelView[13] -= 5;
+        Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
+        Matrix4x4 translate = Matrix4x4::Translate(Vector3(0, -5, -15));
+        Matrix4x4 pers = Matrix4x4::Perspective(60.0f, (float)WIDTH/HEIGHT, 0.01, 100.0);
+        Matrix4x4 mvp = rotateY * translate * pers;
+        GL_CHECK(glUniformMatrix4fv(iLocMVP, 1, GL_FALSE, mvp));
 
-        perspective_matrix(45.0, (double)WIDTH/(double)HEIGHT, 0.01, 100.0, aPerspective);
-        multiply_matrix(aPerspective, aModelView, aMVP);
-
-        //iXangle += 3;
         iYangle += 2;
-        //iZangle += 1;
-
-        if(iXangle >= 360) iXangle -= 360;
-        if(iXangle < 0) iXangle += 360;
         if(iYangle >= 360) iYangle -= 360;
         if(iYangle < 0) iYangle += 360;
-        if(iZangle >= 360) iZangle -= 360;
-        if(iZangle < 0) iZangle += 360;
 
         ///////////////////////////////////////////////////////////////////
         glViewport(0, 0, WIDTH, HEIGHT);
         GL_CHECK(glClearColor(1.0f,1.0f,1.0f,1.0f));
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
         
-        GL_CHECK(glUniformMatrix4fv(iLocMVP, 1, GL_FALSE, aMVP));
         geometry.draw();
 
         if (!context.swap_buffer()) 
