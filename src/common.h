@@ -74,7 +74,7 @@ typedef struct {
         { \
           GLenum glError = glGetError(); \
           if(glError != GL_NO_ERROR) { \
-            fprintf(stderr, "glGetError() = %i (0x%.8x) at line %i\n", glError, glError, __LINE__); \
+            fprintf(stderr, "glGetError() = %i (0x%.8x) at line %i of %s\n", glError, glError, __LINE__, __FILE__); \
             exit(1); \
           } \
         }
@@ -84,7 +84,7 @@ typedef struct {
     { \
         EGLint eglError = eglGetError(); \
         if(eglError != EGL_SUCCESS) { \
-            fprintf(stderr, "eglGetError() = %i (0x%.8x) at line %i\n", eglError, eglError, __LINE__); \
+            fprintf(stderr, "eglGetError() = %i (0x%.8x) at line %i\n of %s", eglError, eglError, __LINE__, __FILE__); \
             exit(1); \
         } \
     }

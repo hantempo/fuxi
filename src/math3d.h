@@ -22,10 +22,18 @@ namespace Math
     {
         return rad * Rad2Deg;
     }
+
+    template <typename T>
+    void swap(T &a, T &b)
+    {
+        T tmp = a;
+        a = b;
+        b = tmp;
+    }
 };
 
 class Vector3;
-class Vector4D;
+class Vector4;
 
 class Matrix4x4
 {
@@ -55,10 +63,12 @@ public:
 
     static Matrix4x4 Translate(const Vector3 &v);
     static Matrix4x4 Rotate(const Vector3 &axis, float angle);
+    static Matrix4x4 Scale(const Vector3 &s);
     static Matrix4x4 Perspective(float fovy, float aspect, float zNear, float zFar);
 
     static float Determinant3x3(const Matrix4x4 &M);
     static Matrix4x4 Invert4x3(const Matrix4x4 &M);
+    static Matrix4x4 Transpose(const Matrix4x4 &M);
 };
 
 class Vector3
@@ -76,7 +86,36 @@ public:
     Vector3();
     Vector3(float nx, float ny, float nz);
     explicit Vector3(const float v[]);
-    Vector3(const Vector3 &V);
+    
+    operator const float *() const { return v; }
+
+};
+
+class Vector4
+{
+public:
+    union
+    {
+        float v[4];
+        struct
+        {
+            float x, y, z, w;
+        };
+    };
+
+    Vector4();
+    Vector4(float nx, float ny, float nz, float nw = 1.0f);
+    explicit Vector4(const float v[]);
+    
+    operator const float *() const { return v; }
+
+};
+
+namespace Color
+{
+    extern const Vector4 Black;
+    extern const Vector4 White;
+    extern const Vector4 Silver;
 };
 
 //////////////////////////////////////////////////////////////////
@@ -160,6 +199,17 @@ inline Matrix4x4 Matrix4x4::Rotate(const Vector3 &axis, float angle)
     return M;
 }
 
+inline Matrix4x4 Matrix4x4::Scale(const Vector3 &s)
+{
+    Matrix4x4 M;
+
+    M.v11 = s.x;
+    M.v22 = s.y;
+    M.v33 = s.z;
+
+    return M;
+}
+
 //////////////////////////////////////////////////////////////////
 // Implementation of Vector3
 //////////////////////////////////////////////////////////////////
@@ -173,9 +223,27 @@ inline Vector3::Vector3(float nx, float ny, float nz) :
 {
 }
 
-inline Vector3::Vector3(const Vector3 &V)
+inline Vector3::Vector3(const float vv[])
 {
-    memcpy(v, V.v, sizeof(float) * 3);
+    memcpy(v, vv, sizeof(float) * 3);
+}
+
+//////////////////////////////////////////////////////////////////
+// Implementation of Vector4
+//////////////////////////////////////////////////////////////////
+
+inline Vector4::Vector4() : x(0), y(0), z(0), w(1)
+{
+}
+
+inline Vector4::Vector4(float nx, float ny, float nz, float nw) :
+    x(nx), y(ny), z(nz), w(nw)
+{
+}
+
+inline Vector4::Vector4(const float vv[])
+{
+    memcpy(v, vv, sizeof(float) * 4);
 }
 
 #endif // _INCLUDE_MATH3D_

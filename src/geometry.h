@@ -13,6 +13,8 @@ public:
     unsigned int triangle_count() const;
     
     void enable_position_attribute(GLuint index) const;
+    void enable_normal_attribute(GLuint index) const;
+    void enable_tex_coord_attribute(GLuint index) const;
 
     void draw() const;
 

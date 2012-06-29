@@ -1,86 +1,12 @@
 #include "math3d.h"
 
-/* 
- * Simulates desktop's glRotatef. The matrix is returned in column-major 
- * order. 
- */
-void rotate_matrix(double angle, double x, double y, double z, float *R) {
-    double radians, c, s, c1, u[3], length;
-    int i, j;
+namespace Color
+{
 
-    radians = (angle * M_PI) / 180.0;
+const Vector4 Black = Vector4(0.f, 0.f, 0.f, 1.f);
+const Vector4 White = Vector4(1.f, 1.f, 1.f, 1.f);
+const Vector4 Silver = Vector4(0.92f, 0.91f, 0.98f);
 
-    c = cos(radians);
-    s = sin(radians);
-
-    c1 = 1.0 - cos(radians);
-
-    length = sqrt(x * x + y * y + z * z);
-
-    u[0] = x / length;
-    u[1] = y / length;
-    u[2] = z / length;
-
-    for (i = 0; i < 16; i++) {
-        R[i] = 0.0;
-    }
-
-    R[15] = 1.0;
-
-    for (i = 0; i < 3; i++) {
-        R[i * 4 + (i + 1) % 3] = u[(i + 2) % 3] * s;
-        R[i * 4 + (i + 2) % 3] = -u[(i + 1) % 3] * s;
-    }
-
-    for (i = 0; i < 3; i++) {
-        for (j = 0; j < 3; j++) {
-            R[i * 4 + j] += c1 * u[i] * u[j] + (i == j ? c : 0.0);
-        }
-    }
-}
-
-/* 
- * Simulates gluPerspectiveMatrix 
- */
-void perspective_matrix(double fovy, double aspect, double znear, double zfar, float *P) {
-    int i;
-    double f;
-
-    f = 1.0/tan(fovy * 0.5);
-
-    for (i = 0; i < 16; i++) {
-        P[i] = 0.0;
-    }
-
-    P[0] = f / aspect;
-    P[5] = f;
-    P[10] = (znear + zfar) / (znear - zfar);
-    P[11] = -1.0;
-    P[14] = (2.0 * znear * zfar) / (znear - zfar);
-    P[15] = 0.0;
-}
-
-/* 
- * Multiplies A by B and writes out to C. All matrices are 4x4 and column
- * major. In-place multiplication is supported.
- */
-void multiply_matrix(float *A, float *B, float *C) {
-    int i, j, k;
-    float aTmp[16];
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            aTmp[j * 4 + i] = 0.0;
-
-            for (k = 0; k < 4; k++) {
-                aTmp[j * 4 + i] += A[k * 4 + i] * B[j * 4 + k];
-            }
-        }
-    }
-
-    for (i = 0; i < 16; i++) {
-        C[i] = aTmp[i];
-    }
 }
 
 //////////////////////////////////////////////////////////////////
@@ -111,7 +37,7 @@ Matrix4x4 Matrix4x4::Invert4x3(const Matrix4x4 &m)
 {
     const float det = Determinant3x3 (m);
     const float k1OverDet = 1.0f / det;
-    Matrix4x4    r;
+    Matrix4x4 r;
 
     r.v11 = (m.v22*m.v33 - m.v23*m.v32) * k1OverDet;
     r.v12 = (m.v13*m.v32 - m.v12*m.v33) * k1OverDet;
@@ -131,4 +57,18 @@ Matrix4x4 Matrix4x4::Invert4x3(const Matrix4x4 &m)
     r.v44 = 1.0f;
 
     return r;
+}
+
+Matrix4x4 Matrix4x4::Transpose(const Matrix4x4 &m)
+{
+    Matrix4x4 M = m;
+
+    Math::swap(M.v12, M.v21);
+    Math::swap(M.v13, M.v31);
+    Math::swap(M.v14, M.v41);
+    Math::swap(M.v24, M.v42);
+    Math::swap(M.v34, M.v43);
+    Math::swap(M.v23, M.v32);
+
+    return M;
 }

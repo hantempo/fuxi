@@ -65,19 +65,49 @@ Geometry::Geometry(const char *obj_filepath)
         delete [] texture;
     }
 
-    unsigned short *pos_index = new unsigned short[3 * objData->faceCount];
+    unsigned short *index = new unsigned short[3 * objData->faceCount];
+
     for (int i = 0; i < objData->faceCount; ++i)
     {
         obj_face *f = objData->faceList[i];
         FUXI_DEBUG_ASSERT(f->vertex_count == 3, "Only accept triangle face");
-        pos_index[i * 3 + 0] = static_cast<unsigned short>(f->vertex_index[0]);
-        pos_index[i * 3 + 1] = static_cast<unsigned short>(f->vertex_index[1]);
-        pos_index[i * 3 + 2] = static_cast<unsigned short>(f->vertex_index[2]);
+        index[i * 3 + 0] = static_cast<unsigned short>(f->vertex_index[0]);
+        index[i * 3 + 1] = static_cast<unsigned short>(f->vertex_index[1]);
+        index[i * 3 + 2] = static_cast<unsigned short>(f->vertex_index[2]);
     }
     GL_CHECK(glGenBuffers(1, &position_index_vbo));
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, position_index_vbo));
-    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * 3 * objData->faceCount, pos_index, GL_STATIC_DRAW));
-    delete [] pos_index;
+    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * 3 * objData->faceCount, index, GL_STATIC_DRAW));
+
+    if (objData->normalCount)
+    {
+        for (int i = 0; i < objData->faceCount; ++i)
+        {
+            obj_face *f = objData->faceList[i];
+            index[i * 3 + 0] = static_cast<unsigned short>(f->normal_index[0]);
+            index[i * 3 + 1] = static_cast<unsigned short>(f->normal_index[1]);
+            index[i * 3 + 2] = static_cast<unsigned short>(f->normal_index[2]);
+        }
+        GL_CHECK(glGenBuffers(1, &normal_index_vbo));
+        GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, normal_index_vbo));
+        GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * 3 * objData->faceCount, index, GL_STATIC_DRAW));
+    }
+
+    if (objData->textureCount)
+    {
+        for (int i = 0; i < objData->faceCount; ++i)
+        {
+            obj_face *f = objData->faceList[i];
+            index[i * 3 + 0] = static_cast<unsigned short>(f->texture_index[0]);
+            index[i * 3 + 1] = static_cast<unsigned short>(f->texture_index[1]);
+            index[i * 3 + 2] = static_cast<unsigned short>(f->texture_index[2]);
+        }
+        GL_CHECK(glGenBuffers(1, &tex_coord_index_vbo));
+        GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tex_coord_index_vbo));
+        GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * 3 * objData->faceCount, index, GL_STATIC_DRAW));
+    }
+
+    delete [] index;
 
     tri_count = objData->faceCount;
 }
@@ -101,6 +131,23 @@ void Geometry::enable_position_attribute(GLuint index) const
 {
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, position_vbo));
     GL_CHECK(glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, 0, 0));
+    GL_CHECK(glEnableVertexAttribArray(index));
+}
+
+void Geometry::enable_normal_attribute(GLuint index) const
+{
+    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, normal_vbo));
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, normal_index_vbo));
+    GL_CHECK(glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, 0, 0));
+    GL_CHECK(glEnableVertexAttribArray(index));
+}
+
+void Geometry::enable_tex_coord_attribute(GLuint index) const
+{
+    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, tex_coord_vbo));
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tex_coord_index_vbo));
+    GL_CHECK(glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, 0, 0));
+    GL_CHECK(glEnableVertexAttribArray(index));
 }
 
 void Geometry::draw() const

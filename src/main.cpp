@@ -112,8 +112,6 @@ int main(int argc, char **argv) {
     const unsigned int HEIGHT = 720;
     FBDevContext context(WIDTH, HEIGHT);
     
-    int iYangle = 0;
-    
     float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
     
     unsigned char *myPixels = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
@@ -123,25 +121,28 @@ int main(int argc, char **argv) {
     FUXI_DEBUG_ASSERT_POINTER(data_path_ptr);
     const std::string data_path(data_path_ptr);
 
-    GLuint uiProgram, uiFragShader, uiVertShader;
-    process_shader(&uiVertShader, (data_path + "/shader/shader.vert").c_str(), GL_VERTEX_SHADER);
-    process_shader(&uiFragShader, (data_path + "/shader/shader.frag").c_str(), GL_FRAGMENT_SHADER);
+    GLuint fragShader, vertShader;
+    process_shader(&vertShader, (data_path + "/shader/shader.vert").c_str(), GL_VERTEX_SHADER);
+    process_shader(&fragShader, (data_path + "/shader/shader.frag").c_str(), GL_FRAGMENT_SHADER);
 
-    uiProgram = GL_CHECK(glCreateProgram());
-    GL_CHECK(glAttachShader(uiProgram, uiVertShader));
-    GL_CHECK(glAttachShader(uiProgram, uiFragShader));
-    GL_CHECK(glLinkProgram(uiProgram));
+    GLuint program = GL_CHECK(glCreateProgram());
+    GL_CHECK(glAttachShader(program, vertShader));
+    GL_CHECK(glAttachShader(program, fragShader));
+    GL_CHECK(glLinkProgram(program));
 
     /* Get attribute locations of non-fixed attributes like colour and texture coordinates. */
-    GLint iLocPosition = GL_CHECK(glGetAttribLocation(uiProgram, "in_position"));
+    GLint locPosition = GL_CHECK(glGetAttribLocation(program, "in_position"));
+    GLint locNormal = GL_CHECK(glGetAttribLocation(program, "in_normal"));
 
     /* Get uniform locations */
-    GLint iLocMVP = GL_CHECK(glGetUniformLocation(uiProgram, "mvp"));
-
-    GL_CHECK(glUseProgram(uiProgram));
-
-    /* Enable attributes for position, colour and texture coordinates etc. */
-    GL_CHECK(glEnableVertexAttribArray(iLocPosition));
+    GLint locMVP = GL_CHECK(glGetUniformLocation(program, "mvp"));
+    GLint locMV = GL_CHECK(glGetUniformLocation(program, "mv"));
+    GLint locInvModel = GL_CHECK(glGetUniformLocation(program, "inv_model"));
+    GLint locLightPos = GL_CHECK(glGetUniformLocation(program, "light_pos"));
+    Vector3 light_pos(0.f, 0.f, 5.f);
+    GL_CHECK(glUseProgram(program));
+    
+    GL_CHECK(glUniform3fv(locLightPos, 1, light_pos));
 
     // Load the model from obj file
     const char * obj_filename = argv[1];
@@ -149,28 +150,46 @@ int main(int argc, char **argv) {
     const Geometry geometry(obj_filepath.c_str());
     FUXI_DEBUG_ASSERT(geometry.triangle_count(), "No faces in model.");
 
-    geometry.enable_position_attribute(iLocPosition);
-    
+    geometry.enable_position_attribute(locPosition);
+    geometry.enable_normal_attribute(locNormal);
+
+    const Vector4 clear_color = Color::Black;
+    GL_CHECK(glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w));
     GL_CHECK(glEnable(GL_CULL_FACE));
     GL_CHECK(glEnable(GL_DEPTH_TEST));
     
     /* Enter event loop */
+    int iXangle = 0, iYangle = 0;
     int count = 0;
-    while (count < 200) {
+    while (count < 360) {
 
-        Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
-        Matrix4x4 translate = Matrix4x4::Translate(Vector3(0, -5, -15));
-        Matrix4x4 pers = Matrix4x4::Perspective(60.0f, (float)WIDTH/HEIGHT, 0.01, 100.0);
-        Matrix4x4 mvp = rotateY * translate * pers;
-        GL_CHECK(glUniformMatrix4fv(iLocMVP, 1, GL_FALSE, mvp));
+        const Matrix4x4 scale = Matrix4x4::Scale(Vector3(1, 1, 1));
+        const Matrix4x4 rotateX = Matrix4x4::Rotate(Vector3(1, 0, 0), iXangle);
+        const Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
+        const Matrix4x4 translate = Matrix4x4::Translate(Vector3(0, 0, -3));
+        const Matrix4x4 pers = Matrix4x4::Perspective(60.0f, (float)WIDTH/HEIGHT, 0.01, 100.0);
+        const Matrix4x4 mv = scale * rotateX * rotateY * translate;
+        const Matrix4x4 inv_model = Matrix4x4::Transpose(Matrix4x4::Invert4x3(mv));
+        const Matrix4x4 mvp = mv * pers;
+        GL_CHECK(glUniformMatrix4fv(locMVP, 1, GL_FALSE, mvp));
+        GL_CHECK(glUniformMatrix4fv(locMV, 1, GL_FALSE, mv));
+        GL_CHECK(glUniformMatrix4fv(locInvModel, 1, GL_FALSE, inv_model));
 
-        iYangle += 2;
-        if(iYangle >= 360) iYangle -= 360;
-        if(iYangle < 0) iYangle += 360;
+        if (count < 180)
+        {
+            iYangle += 2;
+            if(iYangle >= 360) iYangle -= 360;
+            if(iYangle < 0) iYangle += 360;
+        }
+        else
+        {
+            iXangle += 2;
+            if(iXangle >= 360) iXangle -= 360;
+            if(iXangle < 0) iXangle += 360;
+        }
 
         ///////////////////////////////////////////////////////////////////
         glViewport(0, 0, WIDTH, HEIGHT);
-        GL_CHECK(glClearColor(1.0f,1.0f,1.0f,1.0f));
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
         
         geometry.draw();
@@ -183,12 +202,14 @@ int main(int argc, char **argv) {
         count++;
         usleep(20000);
     }
+
+    GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
     
     /* Cleanup shaders */
     GL_CHECK(glUseProgram(0));
-    GL_CHECK(glDeleteShader(uiVertShader));
-    GL_CHECK(glDeleteShader(uiFragShader));
-    GL_CHECK(glDeleteProgram(uiProgram));
+    GL_CHECK(glDeleteShader(vertShader));
+    GL_CHECK(glDeleteShader(fragShader));
+    GL_CHECK(glDeleteProgram(program));
     
     return 0;
 }
