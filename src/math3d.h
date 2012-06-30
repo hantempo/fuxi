@@ -89,7 +89,23 @@ public:
     
     operator const float *() const { return v; }
 
+    const Vector3 operator+(const Vector3 &v) const;
+    const Vector3 operator-(const Vector3 &v) const;
+    const Vector3 operator*(float s) const;
+    const Vector3 operator/(float s) const;
+
+    Vector3& operator+=(const Vector3 &v);
+    Vector3& operator-=(const Vector3 &v);
+    Vector3& operator*=(float s);
+    Vector3& operator/=(float s);
+
+    static float Dot(const Vector3& v1, const Vector3& v2);
+    static const Vector3 Cross(const Vector3& v1, const Vector3& v2);
+    static const Vector3 Normalize(const Vector3 &v);
 };
+
+const Vector3 FaceNormal(const Vector3 &a,
+    const Vector3 &b, const Vector3& c);
 
 class Vector4
 {
@@ -226,6 +242,90 @@ inline Vector3::Vector3(float nx, float ny, float nz) :
 inline Vector3::Vector3(const float vv[])
 {
     memcpy(v, vv, sizeof(float) * 3);
+}
+
+inline const Vector3 Vector3::operator+(const Vector3 &v) const
+{
+    return Vector3(x + v.x, y + v.y, z + v.z);
+}
+
+inline const Vector3 Vector3::operator-(const Vector3 &v) const
+{
+    return Vector3(x - v.x, y - v.y, z - v.z);
+}
+
+inline const Vector3 Vector3::operator*(float s) const
+{
+    return Vector3(x * s, y * s, z * s);
+}
+
+inline const Vector3 Vector3::operator/(float s) const
+{
+    const float inv_s = 1.f / s;
+    return Vector3(x * inv_s, y * inv_s, z * inv_s);
+}
+
+inline Vector3& Vector3::operator+=(const Vector3 &v)
+{
+    x += v.x;
+    y += v.y;
+    z += v.z;
+    return *this;
+}
+
+inline Vector3& Vector3::operator-=(const Vector3 &v)
+{
+    x -= v.x;
+    y -= v.y;
+    z -= v.z;
+    return *this;
+}
+
+inline Vector3& Vector3::operator*=(float s)
+{
+    x *= s;
+    y *= s;
+    z *= s;
+    return *this;
+}
+
+inline Vector3& Vector3::operator/=(float s)
+{
+    const float inv_s = 1.f / s;
+    x *= inv_s;
+    y *= inv_s;
+    z *= inv_s;
+    return *this;
+}
+
+inline const Vector3 FaceNormal(const Vector3 &a,
+    const Vector3 &b, const Vector3& c)
+{
+    const Vector3 ba = b - a;
+    const Vector3 cb = c - b;
+    return Vector3::Normalize(Vector3::Cross(ba, cb));
+}
+
+inline float Vector3::Dot(const Vector3 &v1, const Vector3 &v2)
+{
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+inline const Vector3 Vector3::Cross(const Vector3 &v1, const Vector3 &v2)
+{
+    return Vector3(v1.y * v2.z - v1.z * v2.y,
+        v1.z * v2.x - v1.x * v2.z,
+        v1.x * v2.y - v1.y * v2.x);
+}
+
+inline const Vector3 Vector3::Normalize(const Vector3 &v)
+{
+    const float length = sqrt(v.x * v.x +
+        v.y * v.y + v.z * v.z);
+    const float inv_length = 1.f / length;
+    return Vector3(v.x * inv_length,
+        v.y * inv_length,
+        v.z * inv_length);
 }
 
 //////////////////////////////////////////////////////////////////

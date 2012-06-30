@@ -2,6 +2,8 @@
 #define _INCLUDE_GEOMETRY_
 
 #include "common.h"
+#include <GLES2/gl2.h>
+#include <EGL/egl.h>
 
 // Only accept triangle meshes
 class Geometry
