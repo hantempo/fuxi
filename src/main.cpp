@@ -153,12 +153,12 @@ int main(int argc, char **argv) {
     /* Enter event loop */
     int iXangle = 0, iYangle = 0;
     int count = 0;
-    while (count < 360) {
+    while (count < 180) {
 
         const Matrix4x4 scale = Matrix4x4::Scale(Vector3(1, 1, 1));
         const Matrix4x4 rotateX = Matrix4x4::Rotate(Vector3(1, 0, 0), iXangle);
         const Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
-        const Matrix4x4 translate = Matrix4x4::Translate(Vector3(0, 0, -3));
+        const Matrix4x4 translate = Matrix4x4::Translate(Vector3(0, -5, -10));
         const Matrix4x4 pers = Matrix4x4::Perspective(60.0f, (float)WIDTH/HEIGHT, 0.01, 100.0);
         const Matrix4x4 mv = scale * rotateX * rotateY * translate;
         const Matrix4x4 inv_model = Matrix4x4::Transpose(Matrix4x4::Invert4x3(mv));
@@ -173,12 +173,12 @@ int main(int argc, char **argv) {
             if(iYangle >= 360) iYangle -= 360;
             if(iYangle < 0) iYangle += 360;
         }
-        else
-        {
-            iXangle += 2;
-            if(iXangle >= 360) iXangle -= 360;
-            if(iXangle < 0) iXangle += 360;
-        }
+        //else
+        //{
+            //iXangle += 2;
+            //if(iXangle >= 360) iXangle -= 360;
+            //if(iXangle < 0) iXangle += 360;
+        //}
 
         ///////////////////////////////////////////////////////////////////
         glViewport(0, 0, WIDTH, HEIGHT);

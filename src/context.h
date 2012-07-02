@@ -4,6 +4,8 @@
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 
+#include "common.h"
+
 class FBDevContext
 {
 public:

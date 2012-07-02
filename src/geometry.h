@@ -23,12 +23,11 @@ public:
 private:
     unsigned int tri_count;
 
-    GLuint position_vbo;
-    GLuint normal_vbo;
-    GLuint tex_coord_vbo;
-    GLuint position_index_vbo;
-    GLuint normal_index_vbo;
-    GLuint tex_coord_index_vbo;
+    GLuint attributes_vbo;
+    GLuint index_vbo;
+    unsigned int position_channels;
+    unsigned int normal_channels;
+    unsigned int tex_coord_channels;
 };
 
 #endif // _INCLUDE_GEOMETRY_
