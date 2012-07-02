@@ -8,6 +8,7 @@ endif ()
 add_subdirectory (thirdparty/objLoader)
 
 include_directories (thirdparty)
+include_directories (include)
 
 add_library (common STATIC
     src/common.cpp
@@ -15,20 +16,30 @@ add_library (common STATIC
 )
 
 if (ARM)
-    include_directories (/scratch/tiahan01/sdk_odroida/include)
     link_directories (/scratch/tiahan01/source_depot/PR400/trunk_stable/lib)
 
     add_executable (fuxi
         src/main.cpp
         src/context.cpp
+        src/context_fbdev.cpp
         src/geometry.cpp
         src/shader.cpp
     )
+else ()
+    link_directories (/home/tiahan01/lib)
 
-    target_link_libraries (fuxi
-        common objLoader EGL GLESv2
+    add_executable (fuxi
+        src/main.cpp
+        src/context.cpp
+        src/context_x11.cpp
+        src/geometry.cpp
+        src/shader.cpp
     )
 endif ()
+
+target_link_libraries (fuxi
+    common objLoader EGL GLESv2
+)
 
 add_executable (generate_normal
     src/generate_normal.cpp

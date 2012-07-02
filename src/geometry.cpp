@@ -3,7 +3,8 @@
 
 Geometry::Geometry(const char *obj_filepath)
 : tri_count(0),
-  attributes_vbo(0), index_vbo(0),
+  attributes(NULL), indices(NULL),
+  attributes_vbo(0), indices_vbo(0),
   position_channels(3), normal_channels(3),
   tex_coord_channels(0)
 {
@@ -32,7 +33,7 @@ Geometry::Geometry(const char *obj_filepath)
     FUXI_DEBUG_ASSERT(objData->normalCount, "No normal data");
     FUXI_DEBUG_ASSERT(objData->normalCount == vertexCount, "It's not normal per vertex");
 
-    float *attributes = new float[vertexCount * totalChannels];
+    attributes = new float[vertexCount * totalChannels];
     float *patrol = attributes;
     for (int i = 0; i < vertexCount; ++i)
     {
@@ -50,29 +51,30 @@ Geometry::Geometry(const char *obj_filepath)
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, attributes_vbo));
     GL_CHECK(glBufferData(GL_ARRAY_BUFFER, vertexStride * vertexCount,
         attributes, GL_STATIC_DRAW));
-    delete [] attributes;
 
-    unsigned short *index = new unsigned short[3 * faceCount];
+    indices = new unsigned short[3 * faceCount];
     for (int i = 0; i < faceCount; ++i)
     {
         const obj_face *f = objData->faceList[i];
         FUXI_DEBUG_ASSERT(f->vertex_count == 3, "Only accept triangle face");
-        index[i * 3 + 0] = static_cast<unsigned short>(f->vertex_index[0]);
-        index[i * 3 + 1] = static_cast<unsigned short>(f->vertex_index[1]);
-        index[i * 3 + 2] = static_cast<unsigned short>(f->vertex_index[2]);
+        indices[i * 3 + 0] = static_cast<unsigned short>(f->vertex_index[0]);
+        indices[i * 3 + 1] = static_cast<unsigned short>(f->vertex_index[1]);
+        indices[i * 3 + 2] = static_cast<unsigned short>(f->vertex_index[2]);
     }
-    GL_CHECK(glGenBuffers(1, &index_vbo));
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_vbo));
-    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * 3 * faceCount, index, GL_STATIC_DRAW));
-    delete [] index;
+    GL_CHECK(glGenBuffers(1, &indices_vbo));
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_vbo));
+    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * 3 * faceCount, indices, GL_STATIC_DRAW));
 
     tri_count = objData->faceCount;
 }
 
 Geometry::~Geometry()
 {
+    delete [] attributes;
+    delete [] indices;
+
     GL_CHECK(glDeleteBuffers(1, &attributes_vbo));
-    GL_CHECK(glDeleteBuffers(1, &index_vbo));
+    GL_CHECK(glDeleteBuffers(1, &indices_vbo));
 }
 
 unsigned int Geometry::triangle_count() const
@@ -98,7 +100,7 @@ void Geometry::enable_normal_attribute(GLuint index) const
     const int vertexStride = totalChannels * sizeof(float);
 
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, attributes_vbo));
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_vbo));
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_vbo));
     GL_CHECK(glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE,
         vertexStride,
         (GLfloat *)(NULL) + position_channels));
@@ -112,6 +114,6 @@ void Geometry::enable_tex_coord_attribute(GLuint index) const
 
 void Geometry::draw() const
 {
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_vbo));
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_vbo));
     GL_CHECK(glDrawElements(GL_TRIANGLES, tri_count * 3, GL_UNSIGNED_SHORT, 0));
 }

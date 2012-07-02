@@ -6,17 +6,25 @@
 
 #include "common.h"
 
-class FBDevContext
+class Context
 {
 public:
-   FBDevContext(unsigned int width, unsigned int height);
-   ~FBDevContext();
-   bool swap_buffer();
+    Context(int width, int height);
+    ~Context();
+
+    void resize(int width, int height);
+    bool swap_buffers();
+    bool process_events();
 
 private:
+    static const EGLint config_attributes[];
+    static const EGLint context_attributes[];
+
     EGLDisplay display;
     EGLContext context;
     EGLSurface surface;
+    EGLConfig config;
+    int width, height;
 };
 
 #endif // _INCLUDE_CONTEXT_

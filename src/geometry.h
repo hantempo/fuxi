@@ -20,14 +20,21 @@ public:
 
     void draw() const;
 
+    // According to "Fast Triangle Reordering for Vertex Locality and Reduced Overdraw"
+    void reorder_triangles();
+
 private:
     unsigned int tri_count;
 
+    float * attributes;
+    unsigned short * indices;
+
     GLuint attributes_vbo;
-    GLuint index_vbo;
+    GLuint indices_vbo;
     unsigned int position_channels;
     unsigned int normal_channels;
     unsigned int tex_coord_channels;
+
 };
 
 #endif // _INCLUDE_GEOMETRY_
