@@ -29,31 +29,6 @@
 
 #define FUXI_DEBUG_ASSERT_POINTER(pointer) FUXI_DEBUG_ASSERT(pointer, ("Null pointer " #pointer) )
 
-typedef struct {
-	float x, y, z;
-} vec3;
-
-typedef struct 
-{
-    unsigned short int bfType; //magic identifier
-    unsigned int size; //size of the file
-    unsigned short int reserved1; //
-    unsigned short int reserved2; //
-    unsigned int bfOffBits; //offset to image data
-} BITMAPFILEHEADER;
-
-typedef struct {
-    unsigned int imagesize; //specifies the number of bytes required by the struct
-    int biWidth , biHeight; //species height and width in pixels of the image
-    unsigned short int planes; //the number of color planes
-    unsigned short int bits; //specifies the number of bits per pixel
-    unsigned int compression; //spcifies the type of compression
-    unsigned int biSizeImage; //size of image in bytes
-    unsigned int xresolution, yresolution; //pixels in x and y axis
-    unsigned int nColours; //number of colors used by the bitmap
-    unsigned int importantColours; //number of colors that are important in the image
-} BITMAPINFOHEADER;
-
 #define GL_CHECK(x) \
         x; \
         { \
@@ -73,9 +48,5 @@ typedef struct {
             exit(1); \
         } \
     }
-
-
-// Load a bitmap from disk
-unsigned char *LoadBitmapFile(char *filename, BITMAPINFOHEADER *bitmapInfoHeader);
 
 #endif // _COMMON_H_

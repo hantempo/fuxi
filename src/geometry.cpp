@@ -17,7 +17,6 @@ Geometry::Geometry(const char *obj_filepath)
     printf("Number of vertices: %i\n", objData->vertexCount);
     printf("Number of vertex normals: %i\n", objData->normalCount);
     printf("Number of texture coordinates: %i\n", objData->textureCount);
-
     printf("Number of faces: %i\n", objData->faceCount);
 #endif
 

@@ -1,16 +1,21 @@
 #include "common.h"
 #include "math3d.h"
+#include "image.h"
 
 #include "context.h"
 #include "shader.h"
 #include "geometry.h"
+
+#ifndef GL_STENCIL_INDEX
+#define GL_STENCIL_INDEX            0x1901
+#endif
 
 int main(int argc, char **argv) {
 
     const unsigned int WIDTH  = 1280;
     const unsigned int HEIGHT = 720;
     Context context(WIDTH, HEIGHT);
-    
+
     float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
     
     unsigned char *myPixels = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
@@ -56,12 +61,16 @@ int main(int argc, char **argv) {
     GL_CHECK(glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w));
     GL_CHECK(glEnable(GL_CULL_FACE));
     GL_CHECK(glEnable(GL_DEPTH_TEST));
+    GL_CHECK(glEnable(GL_STENCIL_TEST));
+    GL_CHECK(glStencilFunc(GL_ALWAYS, 0, 0));
+    GL_CHECK(glStencilOp(GL_KEEP, GL_KEEP, GL_INCR));
     
     /* Enter event loop */
     int iXangle = 0, iYangle = 0;
     int count = 0;
-    while (count < 180) {
-
+    float overdraw_ratio_sum = 0;
+    while (count < 180)
+    {
         const Matrix4x4 scale = Matrix4x4::Scale(Vector3(1, 1, 1));
         const Matrix4x4 rotateX = Matrix4x4::Rotate(Vector3(1, 0, 0), iXangle);
         const Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
@@ -90,8 +99,17 @@ int main(int argc, char **argv) {
         ///////////////////////////////////////////////////////////////////
         glViewport(0, 0, WIDTH, HEIGHT);
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-        
+         
         geometry.draw();
+
+        // Get overdraw info
+        Image stencil_framebuffer(WIDTH, HEIGHT, 1);
+        GL_CHECK(glReadPixels(0, 0, WIDTH, HEIGHT, GL_STENCIL_INDEX,
+            GL_UNSIGNED_BYTE, stencil_framebuffer.pixels));
+        const float overdraw_ratio = stencil_framebuffer.overdraw_ratio();
+        overdraw_ratio_sum += overdraw_ratio;
+        char message[512];
+        printf("Frame %d : Overdraw Ratio %f\n", count, overdraw_ratio);
 
         if (!context.swap_buffers()) 
         {
@@ -101,11 +119,10 @@ int main(int argc, char **argv) {
         count++;
         usleep(20000);
     }
-
-    GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
     
-    /* Cleanup shaders */
-    GL_CHECK(glUseProgram(0));
+    printf("Total Frame Count : %d\n", count);
+    printf("Average Overdraw Ratio : %f\n", overdraw_ratio_sum / count);
+
     GL_CHECK(glDeleteShader(vertShader));
     GL_CHECK(glDeleteShader(fragShader));
     GL_CHECK(glDeleteProgram(program));

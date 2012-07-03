@@ -13,6 +13,7 @@ include_directories (include)
 add_library (common STATIC
     src/common.cpp
     src/math3d.cpp
+    src/image.cpp
 )
 
 if (ARM)
