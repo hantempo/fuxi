@@ -7,6 +7,16 @@
 #include <cstring>
 #include <string>
 
+typedef unsigned char       UInt8;
+typedef char                SInt8;
+typedef unsigned short      UInt16;
+typedef short               SInt16;
+typedef unsigned int        UInt32;
+typedef int                 SInt32;
+
+typedef float               Float32;
+typedef double              Float64;
+
 #define FUXI_PRINTF printf
 #define FUXI_ASSERT_QUIT exit(1)
 

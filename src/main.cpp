@@ -1,6 +1,7 @@
 #include "common.h"
 #include "math3d.h"
 #include "image.h"
+#include "cache.h"
 
 #include "context.h"
 #include "shader.h"
@@ -9,6 +10,8 @@
 #ifndef GL_STENCIL_INDEX
 #define GL_STENCIL_INDEX            0x1901
 #endif
+
+const UInt8 POST_TRANSFORM_CACHE_SIZE = 32;
 
 int main(int argc, char **argv) {
 
@@ -51,8 +54,43 @@ int main(int argc, char **argv) {
     // Load the model from obj file
     const char * obj_filename = argv[1];
     const std::string obj_filepath = data_path + "/model/" + obj_filename;
-    const Geometry geometry(obj_filepath.c_str());
-    FUXI_DEBUG_ASSERT(geometry.triangle_count(), "No faces in model.");
+    Geometry geometry(obj_filepath.c_str());
+    const vertex_index_type vertex_count = geometry.vertex_count();
+    const face_index_type tri_count = geometry.triangle_count();
+    FUXI_DEBUG_ASSERT(tri_count, "No faces in model.");
+    //geometry.reorder_triangles(POST_TRANSFORM_CACHE_SIZE);
+    
+    // check the ACMR and ATVR before optimization
+    {
+        FIFOCache<vertex_index_type> cache(POST_TRANSFORM_CACHE_SIZE);
+        const vertex_index_type *v = geometry.index_list();
+        cache.load(v, v + tri_count * 3);
+        const UInt32 miss_count = cache.get_miss_count();
+        const UInt32 load_count = cache.get_load_count();
+
+        printf("\n");
+        printf("Before optimization:\n");
+        printf("Miss Count : %d \nLoad Count : %d\n", miss_count, load_count);
+        printf("ACMR : %f\n", (Float32)miss_count / tri_count);
+        printf("ATVR : %f\n", (Float32)miss_count / vertex_count);
+    }
+
+    Tipsify(geometry.index_list(), geometry.vertex_count(),
+        geometry.triangle_count(), POST_TRANSFORM_CACHE_SIZE);
+
+    {
+        FIFOCache<vertex_index_type> cache(POST_TRANSFORM_CACHE_SIZE);
+        const vertex_index_type *v = geometry.index_list();
+        cache.load(v, v + tri_count * 3);
+        const UInt32 miss_count = cache.get_miss_count();
+        const UInt32 load_count = cache.get_load_count();
+
+        printf("\n");
+        printf("After optimization:\n");
+        printf("Miss Count : %d \nLoad Count : %d\n", miss_count, load_count);
+        printf("ACMR : %f\n", (Float32)miss_count / tri_count);
+        printf("ATVR : %f\n", (Float32)miss_count / vertex_count);
+    }
 
     geometry.enable_position_attribute(locPosition);
     geometry.enable_normal_attribute(locNormal);
@@ -74,7 +112,7 @@ int main(int argc, char **argv) {
         const Matrix4x4 scale = Matrix4x4::Scale(Vector3(1, 1, 1));
         const Matrix4x4 rotateX = Matrix4x4::Rotate(Vector3(1, 0, 0), iXangle);
         const Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
-        const Matrix4x4 translate = Matrix4x4::Translate(Vector3(0, -5, -10));
+        const Matrix4x4 translate = Matrix4x4::Translate(Vector3(0, -5, -15));
         const Matrix4x4 pers = Matrix4x4::Perspective(60.0f, (float)WIDTH/HEIGHT, 0.01, 100.0);
         const Matrix4x4 mv = scale * rotateX * rotateY * translate;
         const Matrix4x4 inv_model = Matrix4x4::Transpose(Matrix4x4::Invert4x3(mv));
@@ -109,7 +147,7 @@ int main(int argc, char **argv) {
         const float overdraw_ratio = stencil_framebuffer.overdraw_ratio();
         overdraw_ratio_sum += overdraw_ratio;
         char message[512];
-        printf("Frame %d : Overdraw Ratio %f\n", count, overdraw_ratio);
+        //printf("Frame %d : Overdraw Ratio %f\n", count, overdraw_ratio);
 
         if (!context.swap_buffers()) 
         {
@@ -120,8 +158,8 @@ int main(int argc, char **argv) {
         usleep(20000);
     }
     
-    printf("Total Frame Count : %d\n", count);
-    printf("Average Overdraw Ratio : %f\n", overdraw_ratio_sum / count);
+    //printf("Total Frame Count : %d\n", count);
+    //printf("Average Overdraw Ratio : %f\n", overdraw_ratio_sum / count);
 
     GL_CHECK(glDeleteShader(vertShader));
     GL_CHECK(glDeleteShader(fragShader));
