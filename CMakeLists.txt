@@ -27,7 +27,7 @@ if (ARM)
         src/shader.cpp
     )
 else ()
-    link_directories (/home/hant/lib)
+    link_directories (~/lib)
 
     add_executable (fuxi
         src/main.cpp

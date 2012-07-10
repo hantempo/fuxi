@@ -53,8 +53,7 @@ int main(int argc, char **argv) {
 
     // Load the model from obj file
     const char * obj_filename = argv[1];
-    const std::string obj_filepath = data_path + "/model/" + obj_filename;
-    Geometry geometry(obj_filepath.c_str());
+    Geometry geometry(obj_filename);
     const vertex_index_type vertex_count = geometry.vertex_count();
     const face_index_type tri_count = geometry.triangle_count();
     FUXI_DEBUG_ASSERT(tri_count, "No faces in model.");
@@ -75,8 +74,8 @@ int main(int argc, char **argv) {
         printf("ATVR : %f\n", (Float32)miss_count / vertex_count);
     }
 
-    Tipsify(geometry.index_list(), geometry.vertex_count(),
-        geometry.triangle_count(), POST_TRANSFORM_CACHE_SIZE);
+    //Tipsify(geometry.index_list(), geometry.vertex_count(),
+        //geometry.triangle_count(), POST_TRANSFORM_CACHE_SIZE);
 
     {
         FIFOCache<vertex_index_type> cache(POST_TRANSFORM_CACHE_SIZE);

@@ -2,6 +2,7 @@
 #define _INCLUDE_GEOMETRY_
 
 #include "common.h"
+#include "math3d.h"
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 
@@ -23,6 +24,8 @@ public:
     void enable_position_attribute(GLuint index) const;
     void enable_normal_attribute(GLuint index) const;
     void enable_tex_coord_attribute(GLuint index) const;
+    
+    void generate_normal();
 
     void draw() const;
 
@@ -30,17 +33,29 @@ public:
     void reorder_triangles(UInt8 cache_size);
 
 private:
+    void generate_normals();
+    void build_adjacent_relationship();
+
+    UInt8 adjacent_triangle_count(vertex_index_type vi) const;
+    face_index_type adjacent_triangle(vertex_index_type vi, UInt8 fi) const;
+
     face_index_type tri_count;
     vertex_index_type v_count;
 
-    attribute_type * attributes;
-    vertex_index_type * indices;
+    Vector3 *positions, *normals;
+    vertex_index_type *indices;
 
     GLuint attributes_vbo;
     GLuint indices_vbo;
     UInt8 position_channels;
     UInt8 normal_channels;
     UInt8 tex_coord_channels;
+
+    // The count of adjacent triangles for each vertex
+    UInt8 *adj_tri_count;
+    // The triangle-list offset map for each vertex
+    face_index_type *tri_offset;
+    face_index_type *tri_list;
 };
 
 void Tipsify(vertex_index_type * indices,
