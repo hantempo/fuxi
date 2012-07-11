@@ -12,11 +12,11 @@
 #endif
 
 const UInt8 POST_TRANSFORM_CACHE_SIZE = 32;
+const UInt32 WIDTH  = 1280;
+const UInt32 HEIGHT = 720;
 
-int main(int argc, char **argv) {
-
-    const unsigned int WIDTH  = 1280;
-    const unsigned int HEIGHT = 720;
+int main(int argc, char **argv)
+{
     Context context(WIDTH, HEIGHT);
 
     float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
@@ -101,6 +101,10 @@ int main(int argc, char **argv) {
     GL_CHECK(glEnable(GL_STENCIL_TEST));
     GL_CHECK(glStencilFunc(GL_ALWAYS, 0, 0));
     GL_CHECK(glStencilOp(GL_KEEP, GL_KEEP, GL_INCR));
+
+    const AABB &bb = geometry.get_bounding_box();
+    const Vector3 &center = bb.center();
+    const Vector3 &eye = center + Vector3(0.f, 0.f, bb.dimension().y * 1.5f);
     
     /* Enter event loop */
     int iXangle = 0, iYangle = 0;
@@ -108,24 +112,23 @@ int main(int argc, char **argv) {
     float overdraw_ratio_sum = 0;
     while (count < 180)
     {
-        const Matrix4x4 scale = Matrix4x4::Scale(Vector3(1, 1, 1));
         const Matrix4x4 rotateX = Matrix4x4::Rotate(Vector3(1, 0, 0), iXangle);
         const Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
-        const Matrix4x4 translate = Matrix4x4::Translate(Vector3(0, -5, -15));
+        const Matrix4x4 lookat = Matrix4x4::LookAt(eye, center, Vector3(0, 1, 0));
         const Matrix4x4 pers = Matrix4x4::Perspective(60.0f, (float)WIDTH/HEIGHT, 0.01, 100.0);
-        const Matrix4x4 mv = scale * rotateX * rotateY * translate;
+        const Matrix4x4 mv = rotateX * rotateY * lookat;
         const Matrix4x4 inv_model = Matrix4x4::Transpose(Matrix4x4::Invert4x3(mv));
         const Matrix4x4 mvp = mv * pers;
         GL_CHECK(glUniformMatrix4fv(locMVP, 1, GL_FALSE, mvp));
         GL_CHECK(glUniformMatrix4fv(locMV, 1, GL_FALSE, mv));
         GL_CHECK(glUniformMatrix4fv(locInvModel, 1, GL_FALSE, inv_model));
 
-        if (count < 180)
-        {
-            iYangle += 2;
-            if(iYangle >= 360) iYangle -= 360;
-            if(iYangle < 0) iYangle += 360;
-        }
+        //if (count < 180)
+        //{
+            //iYangle += 2;
+            //if(iYangle >= 360) iYangle -= 360;
+            //if(iYangle < 0) iYangle += 360;
+        //}
         //else
         //{
             //iXangle += 2;

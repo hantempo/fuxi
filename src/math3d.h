@@ -30,6 +30,18 @@ namespace Math
         a = b;
         b = tmp;
     }
+
+    template <typename T>
+    T min(const T &a, const T &b)
+    {
+        return !(b < a)?a:b;
+    }
+
+    template <typename T>
+    T max(const T &a, const T &b)
+    {
+        return (a<b)?b:a;
+    }
 };
 
 class Vector3;
@@ -54,6 +66,7 @@ public:
               float m21 = 0, float m22 = 1, float m23 = 0, float m24 = 0, 
               float m31 = 0, float m32 = 0, float m33 = 1, float m34 = 0, 
               float m41 = 0, float m42 = 0, float m43 = 0, float m44 = 1);
+    Matrix4x4(const Vector3 &x, const Vector3 &y, const Vector3 &z, const Vector3 &offset);
     explicit Matrix4x4(const float v[]);
 
     Matrix4x4 & operator*=(const Matrix4x4 &M);
@@ -65,6 +78,7 @@ public:
     static Matrix4x4 Rotate(const Vector3 &axis, float angle);
     static Matrix4x4 Scale(const Vector3 &s);
     static Matrix4x4 Perspective(float fovy, float aspect, float zNear, float zFar);
+    static Matrix4x4 LookAt(const Vector3 &eye, const Vector3 &center, const Vector3 &up);
 
     static float Determinant3x3(const Matrix4x4 &M);
     static Matrix4x4 Invert4x3(const Matrix4x4 &M);
@@ -93,6 +107,7 @@ public:
     const Vector3 operator-(const Vector3 &v) const;
     const Vector3 operator*(float s) const;
     const Vector3 operator/(float s) const;
+    const Vector3 operator-() const;
 
     Vector3& operator+=(const Vector3 &v);
     Vector3& operator-=(const Vector3 &v);
@@ -134,6 +149,18 @@ namespace Color
     extern const Vector4 Silver;
 };
 
+class AABB
+{
+public:
+    Vector3 min, max;
+
+    AABB();
+    void add(const Vector3 &v);
+
+    const Vector3 center() const;
+    const Vector3 dimension() const;
+};
+
 //////////////////////////////////////////////////////////////////
 // Implementation of Matrix4x4
 //////////////////////////////////////////////////////////////////
@@ -146,6 +173,14 @@ inline Matrix4x4::Matrix4x4(float m11, float m12, float m13, float m14,
     v21(m21), v22(m22), v23(m23), v24(m24),
     v31(m31), v32(m32), v33(m33), v34(m34),
     v41(m41), v42(m42), v43(m43), v44(m44)
+{
+}
+
+inline Matrix4x4::Matrix4x4(const Vector3 &x, const Vector3 &y, const Vector3 &z, const Vector3 &offset) :
+    v11(x.x), v12(x.y), v13(x.z), v14(0.f),
+    v21(y.x), v22(y.y), v23(y.z), v24(0.f),
+    v31(z.x), v32(z.y), v33(z.z), v34(0.f),
+    v41(offset.x), v42(offset.y), v43(offset.z), v44(1.f)
 {
 }
 
@@ -265,6 +300,11 @@ inline const Vector3 Vector3::operator/(float s) const
     return Vector3(x * inv_s, y * inv_s, z * inv_s);
 }
 
+inline const Vector3 Vector3::operator-() const
+{
+    return Vector3(-x, -y, -z);
+}
+
 inline Vector3& Vector3::operator+=(const Vector3 &v)
 {
     x += v.x;
@@ -344,6 +384,36 @@ inline Vector4::Vector4(float nx, float ny, float nz, float nw) :
 inline Vector4::Vector4(const float vv[])
 {
     memcpy(v, vv, sizeof(float) * 4);
+}
+
+//////////////////////////////////////////////////////////////////
+// Implementation of AABB
+//////////////////////////////////////////////////////////////////
+
+inline AABB::AABB()
+: min(INFINITY, INFINITY, INFINITY),
+  max(-INFINITY, -INFINITY, -INFINITY)
+{
+}
+
+inline void AABB::add(const Vector3 &v)
+{
+    min.x = Math::min(min.x, v.x);
+    min.y = Math::min(min.y, v.y);
+    min.z = Math::min(min.y, v.z);
+    max.x = Math::max(max.x, v.x);
+    max.y = Math::max(max.y, v.y);
+    max.z = Math::max(max.y, v.z);
+}
+
+inline const Vector3 AABB::center() const
+{
+    return (min + max) * 0.5f;
+}
+
+inline const Vector3 AABB::dimension() const
+{
+    return max - min;
 }
 
 #endif // _INCLUDE_MATH3D_

@@ -29,6 +29,8 @@ public:
 
     void draw() const;
 
+    const AABB & get_bounding_box() const { return bounding_box; }
+
     // According to "Fast Triangle Reordering for Vertex Locality and Reduced Overdraw"
     void reorder_triangles(UInt8 cache_size);
 
@@ -56,6 +58,8 @@ private:
     // The triangle-list offset map for each vertex
     face_index_type *tri_offset;
     face_index_type *tri_list;
+
+    AABB bounding_box;
 };
 
 void Tipsify(vertex_index_type * indices,

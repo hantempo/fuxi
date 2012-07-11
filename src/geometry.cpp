@@ -67,6 +67,7 @@ Geometry::Geometry(const char *obj_filepath)
     {
         const obj_vector *pos = objData->vertexList[i];
         positions[i] = Vector3(pos->e);
+        bounding_box.add(positions[i]);
     }
 
     normals = new Vector3[v_count];

@@ -26,6 +26,14 @@ Matrix4x4 Matrix4x4::Perspective(float fovy, float aspect, float zNear, float zF
     return M;
 }
 
+Matrix4x4 Matrix4x4::LookAt(const Vector3 &eye, const Vector3 &center, const Vector3 &up)
+{
+    const Vector3 neg_z = Vector3::Normalize(center - eye);
+    const Vector3 pos_x = Vector3::Normalize(Vector3::Cross(neg_z, up));
+    const Vector3 pos_y = Vector3::Cross(pos_x, neg_z);
+    return Matrix4x4(pos_x, pos_y, -neg_z, -eye);
+}
+
 float Matrix4x4::Determinant3x3(const Matrix4x4 &M)
 {
     return M.v11 * (M.v22*M.v33 - M.v23*M.v32)

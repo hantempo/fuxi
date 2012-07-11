@@ -42,10 +42,3 @@ target_link_libraries (fuxi
     common objLoader EGL GLESv2
 )
 
-add_executable (generate_normal
-    src/generate_normal.cpp
-)
-
-target_link_libraries (generate_normal
-    common objLoader
-)
