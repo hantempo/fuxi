@@ -35,6 +35,7 @@ else ()
         src/context_x11.cpp
         src/geometry.cpp
         src/shader.cpp
+        src/program.cpp
     )
 endif ()
 

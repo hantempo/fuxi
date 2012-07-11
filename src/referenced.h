@@ -7,6 +7,7 @@ class Referenced
 {
 public:
     Referenced() : ref_count(0) {}
+    virtual ~Referenced() {}
 
     void ref() { ++ref_count; }
     void unref() { --ref_count; }

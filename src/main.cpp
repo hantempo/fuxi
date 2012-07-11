@@ -5,6 +5,7 @@
 
 #include "context.h"
 #include "shader.h"
+#include "program.h"
 #include "geometry.h"
 #include "ref_ptr.h"
 
@@ -20,8 +21,6 @@ int main(int argc, char **argv)
 {
     Context context(INITIAL_WIDTH, INITIAL_HEIGHT);
 
-    float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
-    
     ///////////////////////////////////////////////////////////////////////////
     // Load shaders
     ///////////////////////////////////////////////////////////////////////////
@@ -29,27 +28,21 @@ int main(int argc, char **argv)
     FUXI_DEBUG_ASSERT_POINTER(data_path_ptr);
     const std::string data_path(data_path_ptr);
 
-    GLuint fragShader, vertShader;
-    process_shader(&vertShader, (data_path + "/shader/shader.vert").c_str(), GL_VERTEX_SHADER);
-    process_shader(&fragShader, (data_path + "/shader/shader.frag").c_str(), GL_FRAGMENT_SHADER);
-
-    GLuint program = GL_CHECK(glCreateProgram());
-    GL_CHECK(glAttachShader(program, vertShader));
-    GL_CHECK(glAttachShader(program, fragShader));
-    GL_CHECK(glLinkProgram(program));
-
-    /* Get attribute locations of non-fixed attributes like colour and texture coordinates. */
-    GLint locPosition = GL_CHECK(glGetAttribLocation(program, "in_position"));
-    GLint locNormal = GL_CHECK(glGetAttribLocation(program, "in_normal"));
-
-    /* Get uniform locations */
-    GLint locMVP = GL_CHECK(glGetUniformLocation(program, "mvp"));
-    GLint locMV = GL_CHECK(glGetUniformLocation(program, "mv"));
-    GLint locInvModel = GL_CHECK(glGetUniformLocation(program, "inv_model"));
-    GLint locLightPos = GL_CHECK(glGetUniformLocation(program, "light_pos"));
-    Vector3 light_pos(0.f, 0.f, 5.f);
-    GL_CHECK(glUseProgram(program));
+    ref_ptr<Program> p = new Program;
+    p->add_shader(Shader::ReadShaderFile(Shader::VERTEX, data_path + "/shader/shader.vert"));
+    p->add_shader(Shader::ReadShaderFile(Shader::FRAGMENT, data_path + "/shader/shader.frag"));
+    p->apply();
+    Program::UniformLocationList &uniform_locations = const_cast<Program::UniformLocationList &>(p->get_active_uniforms());
+    Program::AttribLocationList &attrib_locations = const_cast<Program::AttribLocationList &>(p->get_active_attribs());
     
+    const GLint locPosition = attrib_locations["in_position"];
+    const GLint locNormal = attrib_locations["in_normal"];
+    const GLint locMVP = uniform_locations["mvp"];
+    const GLint locMV = uniform_locations["mv"];
+    const GLint locInvModel = uniform_locations["inv_model"];
+    const GLint locLightPos = uniform_locations["light_pos"];
+
+    Vector3 light_pos(0.f, 0.f, 5.f);
     GL_CHECK(glUniform3fv(locLightPos, 1, light_pos));
 
     ///////////////////////////////////////////////////////////////////////////
@@ -172,9 +165,5 @@ int main(int argc, char **argv)
     //printf("Total Frame Count : %d\n", count);
     //printf("Average Overdraw Ratio : %f\n", overdraw_ratio_sum / count);
 
-    GL_CHECK(glDeleteShader(vertShader));
-    GL_CHECK(glDeleteShader(fragShader));
-    GL_CHECK(glDeleteProgram(program));
-    
     return 0;
 }

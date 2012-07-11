@@ -1,78 +1,50 @@
 #include "shader.h"
 #include "common.h"
 
-/* 
- * Loads the shader source into memory.
- *
- * sFilename: String holding filename to load 
- */
-char* load_shader(const char *sFilename) {
-    char *pResult = NULL;
-    FILE *pFile = NULL;
-    long iLen = 0;
+#include <fstream>
+#include <streambuf>
 
-    pFile = fopen(sFilename, "r");
-
-    if(pFile == NULL) {
-        fprintf(stderr, "Error: Cannot read file '%s'\n", sFilename);
-  		exit(-1);
-    }
-
-    fseek(pFile, 0, SEEK_END); /* Seek end of file */
-    iLen = ftell(pFile);
-    fseek(pFile, 0, SEEK_SET); /* Seek start of file again */
-    pResult = (char*)calloc(iLen+1, sizeof(char));
-    fread(pResult, sizeof(char), iLen, pFile);
-    pResult[iLen] = '\0';
-    fclose(pFile);
-
-    return pResult;
+Shader::Shader(Shader::Type type)
+: _type(type), _gl_shader(0)
+{
 }
 
-/* 
- * Create shader, load in source, compile, dump debug as necessary.
- *
- * pShader: Pointer to return created shader ID.
- * sFilename: Passed-in filename from which to load shader source.
- * iShaderType: Passed to GL, e.g. GL_VERTEX_SHADER.
- */
-void process_shader(GLuint *pShader, const char *sFilename, GLint iShaderType) {
-	GLint iStatus;
-	const char *aStrings[1] = { NULL };
+Shader::~Shader()
+{
+    GL_CHECK(glDeleteShader(_gl_shader));
+}
 
-	/* Create shader and load into GL. */
-	*pShader = GL_CHECK(glCreateShader(iShaderType));
-	
-	aStrings[0] = load_shader(sFilename);
-	
-	GL_CHECK(glShaderSource(*pShader, 1, aStrings, NULL));
+bool Shader::load_source_from_file(const std::string &filename)
+{
+    std::ifstream ifs(filename.c_str());
+    _source = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 
-	/* Clean up shader source. */
-	free((void *)aStrings[0]);
-	aStrings[0] = NULL;
+    _gl_shader = GL_CHECK(glCreateShader(_type));
+    const char *source_array[1] = {_source.c_str()};
+    GL_CHECK(glShaderSource(_gl_shader, 1, source_array, NULL));
 
-	/* Try compiling the shader. */
-	GL_CHECK(glCompileShader(*pShader));
-	GL_CHECK(glGetShaderiv(*pShader, GL_COMPILE_STATUS, &iStatus));
+	GL_CHECK(glCompileShader(_gl_shader));
+    GLint status = GL_TRUE;
+	GL_CHECK(glGetShaderiv(_gl_shader, GL_COMPILE_STATUS, &status));
 
 	// Dump debug info (source and log) if compilation failed.
-	if(iStatus != GL_TRUE) {
-#ifndef NDEBUG
-		GLint length;
-		GL_CHECK(glGetShaderiv(*pShader, GL_SHADER_SOURCE_LENGTH, &length));
-		char *shader_source = new char[length];
-		GL_CHECK(glGetShaderSource(*pShader, length, NULL, shader_source));
-		printf("Debug source START:\n%s\nDebug source END\n\n", shader_source);
-		delete [] shader_source;
+	if(status != GL_TRUE) {
+		printf("Debug source START:\n%s\nDebug source END\n\n", _source.c_str());
 
-		GL_CHECK(glGetShaderiv(*pShader, GL_INFO_LOG_LENGTH, &length));
+        GLint length = 0;
+		GL_CHECK(glGetShaderiv(_gl_shader, GL_INFO_LOG_LENGTH, &length));
 		char *error_log = new char[length];
-		GL_CHECK(glGetShaderInfoLog(*pShader, length, NULL, error_log));
+		GL_CHECK(glGetShaderInfoLog(_gl_shader, length, NULL, error_log));
 		printf("Log START:\n%s\nLog END\n\n", error_log);
 		delete [] error_log;
-#endif
-
-		exit(-1);
 	}
+}
+
+Shader * Shader::ReadShaderFile(Shader::Type type, const std::string &filename)
+{
+    Shader * s = new Shader(type);
+    if (s)
+        s->load_source_from_file(filename);
+    return s;
 }
 
