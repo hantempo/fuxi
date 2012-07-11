@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "math3d.h"
+#include "referenced.h"
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 
@@ -11,7 +12,7 @@ typedef UInt16 vertex_index_type;
 typedef Float32 attribute_type;
 
 // Only accept triangle meshes
-class Geometry
+class Geometry : public Referenced
 {
 public:
     Geometry(const char *obj_filepath);

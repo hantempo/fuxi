@@ -6,6 +6,7 @@
 #include "context.h"
 #include "shader.h"
 #include "geometry.h"
+#include "ref_ptr.h"
 
 #ifndef GL_STENCIL_INDEX
 #define GL_STENCIL_INDEX            0x1901
@@ -55,15 +56,15 @@ int main(int argc, char **argv)
     // Load model
     ///////////////////////////////////////////////////////////////////////////
     const char * obj_filename = argv[1];
-    Geometry geometry(obj_filename);
-    const vertex_index_type vertex_count = geometry.vertex_count();
-    const face_index_type tri_count = geometry.triangle_count();
+    ref_ptr<Geometry> geometry = new Geometry(obj_filename);
+    const vertex_index_type vertex_count = geometry->vertex_count();
+    const face_index_type tri_count = geometry->triangle_count();
     FUXI_DEBUG_ASSERT(tri_count, "No faces in model.");
     
     // check the ACMR and ATVR before optimization
     {
         FIFOCache<vertex_index_type> cache(POST_TRANSFORM_CACHE_SIZE);
-        const vertex_index_type *v = geometry.index_list();
+        const vertex_index_type *v = geometry->index_list();
         cache.load(v, v + tri_count * 3);
         const UInt32 miss_count = cache.get_miss_count();
         const UInt32 load_count = cache.get_load_count();
@@ -75,12 +76,12 @@ int main(int argc, char **argv)
         printf("ATVR : %f\n", (Float32)miss_count / vertex_count);
     }
 
-    //Tipsify(geometry.index_list(), geometry.vertex_count(),
-        //geometry.triangle_count(), POST_TRANSFORM_CACHE_SIZE);
+    //Tipsify(geometry->index_list(), geometry->vertex_count(),
+        //geometry->triangle_count(), POST_TRANSFORM_CACHE_SIZE);
 
     {
         FIFOCache<vertex_index_type> cache(POST_TRANSFORM_CACHE_SIZE);
-        const vertex_index_type *v = geometry.index_list();
+        const vertex_index_type *v = geometry->index_list();
         cache.load(v, v + tri_count * 3);
         const UInt32 miss_count = cache.get_miss_count();
         const UInt32 load_count = cache.get_load_count();
@@ -92,8 +93,8 @@ int main(int argc, char **argv)
         printf("ATVR : %f\n", (Float32)miss_count / vertex_count);
     }
 
-    geometry.enable_position_attribute(locPosition);
-    geometry.enable_normal_attribute(locNormal);
+    geometry->enable_position_attribute(locPosition);
+    geometry->enable_normal_attribute(locNormal);
 
     const Vector4 clear_color = Color::Black;
     GL_CHECK(glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w));
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
     ///////////////////////////////////////////////////////////////////////////
     // Set viewport transformation according to model bounding volumn
     ///////////////////////////////////////////////////////////////////////////
-    const AABB &bb = geometry.get_bounding_box();
+    const AABB &bb = geometry->get_bounding_box();
     const Vector3 &center = bb.center();
     const Vector3 &dim = bb.dimension();
     const Vector3 &eye = center + Vector3(0.f, 0.f, dim.y * 0.7f);
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
     int iXangle = 0, iYangle = 0;
     int count = 0;
     float overdraw_ratio_sum = 0;
-    while (count < 3)
+    while (count < 150)
     {
         const Matrix4x4 rotateX = Matrix4x4::Rotate(Vector3(1, 0, 0), iXangle);
         const Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
@@ -148,7 +149,7 @@ int main(int argc, char **argv)
         glViewport(0, 0, width, height);
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
          
-        geometry.draw();
+        geometry->draw();
 
         // Get overdraw info
         //Image stencil_framebuffer(width, height, 1);
