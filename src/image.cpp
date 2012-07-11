@@ -36,6 +36,7 @@ Image::Image(int w, int h, int c)
 Image::~Image()
 {
     delete [] pixels;
+    pixels = NULL;
 }
 
 void Image::set_size(int w, int h, int c)
@@ -43,6 +44,7 @@ void Image::set_size(int w, int h, int c)
     width = w;
     height = h;
     channels = c;
+    delete [] pixels;
     pixels = new unsigned char[w * h * c];
 }
 

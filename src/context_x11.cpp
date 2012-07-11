@@ -123,3 +123,14 @@ bool Context::swap_buffers()
 {
     return eglSwapBuffers(display, surface);
 }
+
+void Context::resize(int w, int h)
+{
+    if (w == width && h == height) {
+        return;
+    }
+
+    eglWaitClient();
+    XResizeWindow(xdisplay, xwindow, w, h);
+    eglWaitNative(EGL_CORE_NATIVE_ENGINE);
+}

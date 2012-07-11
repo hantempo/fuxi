@@ -12,18 +12,18 @@
 #endif
 
 const UInt8 POST_TRANSFORM_CACHE_SIZE = 32;
-const UInt32 WIDTH  = 1280;
-const UInt32 HEIGHT = 720;
+const UInt32 INITIAL_WIDTH = 10;
+const UInt32 INITIAL_HEIGHT = 10;
 
 int main(int argc, char **argv)
 {
-    Context context(WIDTH, HEIGHT);
+    Context context(INITIAL_WIDTH, INITIAL_HEIGHT);
 
     float aLightPos[] = { 0.0f, 0.0f, -1.0f }; // Light is nearest camera.
     
-    unsigned char *myPixels = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
-    unsigned char *myPixels2 = (unsigned char*)calloc(1, 128*128*4); // Holds texture data.
-    
+    ///////////////////////////////////////////////////////////////////////////
+    // Load shaders
+    ///////////////////////////////////////////////////////////////////////////
     const char* data_path_ptr = getenv("FUXI_DATA_PATH");
     FUXI_DEBUG_ASSERT_POINTER(data_path_ptr);
     const std::string data_path(data_path_ptr);
@@ -51,13 +51,14 @@ int main(int argc, char **argv)
     
     GL_CHECK(glUniform3fv(locLightPos, 1, light_pos));
 
-    // Load the model from obj file
+    ///////////////////////////////////////////////////////////////////////////
+    // Load model
+    ///////////////////////////////////////////////////////////////////////////
     const char * obj_filename = argv[1];
     Geometry geometry(obj_filename);
     const vertex_index_type vertex_count = geometry.vertex_count();
     const face_index_type tri_count = geometry.triangle_count();
     FUXI_DEBUG_ASSERT(tri_count, "No faces in model.");
-    //geometry.reorder_triangles(POST_TRANSFORM_CACHE_SIZE);
     
     // check the ACMR and ATVR before optimization
     {
@@ -102,20 +103,27 @@ int main(int argc, char **argv)
     GL_CHECK(glStencilFunc(GL_ALWAYS, 0, 0));
     GL_CHECK(glStencilOp(GL_KEEP, GL_KEEP, GL_INCR));
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Set viewport transformation according to model bounding volumn
+    ///////////////////////////////////////////////////////////////////////////
     const AABB &bb = geometry.get_bounding_box();
     const Vector3 &center = bb.center();
-    const Vector3 &eye = center + Vector3(0.f, 0.f, bb.dimension().y * 1.5f);
+    const Vector3 &dim = bb.dimension();
+    const Vector3 &eye = center + Vector3(0.f, 0.f, dim.y * 0.7f);
+    const UInt32 height = 600;
+    const UInt32 width = static_cast<UInt32>(height * (dim.x / dim.y));
+    context.resize(width, height);
     
     /* Enter event loop */
     int iXangle = 0, iYangle = 0;
     int count = 0;
     float overdraw_ratio_sum = 0;
-    while (count < 180)
+    while (count < 3)
     {
         const Matrix4x4 rotateX = Matrix4x4::Rotate(Vector3(1, 0, 0), iXangle);
         const Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
         const Matrix4x4 lookat = Matrix4x4::LookAt(eye, center, Vector3(0, 1, 0));
-        const Matrix4x4 pers = Matrix4x4::Perspective(60.0f, (float)WIDTH/HEIGHT, 0.01, 100.0);
+        const Matrix4x4 pers = Matrix4x4::Perspective(60.0f, (float)width/height, 0.01, 100.0);
         const Matrix4x4 mv = rotateX * rotateY * lookat;
         const Matrix4x4 inv_model = Matrix4x4::Transpose(Matrix4x4::Invert4x3(mv));
         const Matrix4x4 mvp = mv * pers;
@@ -137,18 +145,18 @@ int main(int argc, char **argv)
         //}
 
         ///////////////////////////////////////////////////////////////////
-        glViewport(0, 0, WIDTH, HEIGHT);
+        glViewport(0, 0, width, height);
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
          
         geometry.draw();
 
         // Get overdraw info
-        Image stencil_framebuffer(WIDTH, HEIGHT, 1);
-        GL_CHECK(glReadPixels(0, 0, WIDTH, HEIGHT, GL_STENCIL_INDEX,
-            GL_UNSIGNED_BYTE, stencil_framebuffer.pixels));
-        const float overdraw_ratio = stencil_framebuffer.overdraw_ratio();
-        overdraw_ratio_sum += overdraw_ratio;
-        char message[512];
+        //Image stencil_framebuffer(width, height, 1);
+        //GL_CHECK(glReadPixels(0, 0, width, height, GL_STENCIL_INDEX,
+            //GL_UNSIGNED_BYTE, stencil_framebuffer.pixels));
+        //const float overdraw_ratio = stencil_framebuffer.overdraw_ratio();
+        //overdraw_ratio_sum += overdraw_ratio;
+        //char message[512];
         //printf("Frame %d : Overdraw Ratio %f\n", count, overdraw_ratio);
 
         if (!context.swap_buffers()) 
