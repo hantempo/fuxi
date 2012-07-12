@@ -16,26 +16,27 @@ add_library (common STATIC
     src/image.cpp
 )
 
+set (gles_common
+    src/main.cpp
+    src/context.cpp
+    src/geometry.cpp
+    src/shader.cpp
+    src/program.cpp
+)
+
 if (ARM)
     link_directories (/scratch/tiahan01/source_depot/PR400/trunk_stable/lib)
 
     add_executable (fuxi
-        src/main.cpp
-        src/context.cpp
         src/context_fbdev.cpp
-        src/geometry.cpp
-        src/shader.cpp
+        ${gles_common}
     )
 else ()
     link_directories (~/lib)
 
     add_executable (fuxi
-        src/main.cpp
-        src/context.cpp
         src/context_x11.cpp
-        src/geometry.cpp
-        src/shader.cpp
-        src/program.cpp
+        ${gles_common}
     )
 endif ()
 

@@ -49,7 +49,7 @@ bool Context::process_events(void)
 
 bool Context::swap_buffers()
 {
-    return eglSwapBuffers(display, surface);
+    return EGL_CHECK(eglSwapBuffers(display, surface));
 }
 
 void Context::resize(int w, int h)
@@ -58,15 +58,15 @@ void Context::resize(int w, int h)
         return;
     }
 
-    EGLContext current_context = eglGetCurrentContext();
-    eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglDestroySurface(display, surface);
+    EGLContext current_context = EGL_CHECK(eglGetCurrentContext());
+    EGL_CHECK(eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
+    EGL_CHECK(eglDestroySurface(display, surface));
 
     fbdev_window window;
     window.width = static_cast<unsigned short>(width);
     window.height = static_cast<unsigned short>(height);
-    surface = eglCreateWindowSurface(display, config,
-                                     (EGLNativeWindowType)&window, NULL);
-    eglMakeCurrent(display, surface, surface, current_context);
+    surface = EGL_CHECK(eglCreateWindowSurface(display, config,
+                                     (EGLNativeWindowType)&window, NULL));
+    EGL_CHECK(eglMakeCurrent(display, surface, surface, current_context));
 }
 

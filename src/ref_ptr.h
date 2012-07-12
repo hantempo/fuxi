@@ -66,7 +66,7 @@ public:
 
     bool operator!() const
     {
-        return ptr != NULL;
+        return ptr == NULL;
     }
 
 private:

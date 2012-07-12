@@ -81,7 +81,7 @@ Context::Context(int w, int h)
         sizehints.flags = USSize | USPosition;
         XSetNormalHints(xdisplay, xwindow, &sizehints);
 
-        const char *name = "glretrace";
+        const char *name = "fuxi";
         XSetStandardProperties(
             xdisplay, xwindow, name, name,
             None, (char **)NULL, 0, &sizehints);

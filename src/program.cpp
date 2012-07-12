@@ -4,7 +4,7 @@
 Program::Program()
 : _dirty(false), _gl_program(0)
 {
-
+    _gl_program = GL_CHECK(glCreateProgram());
 }
 
 Program::~Program()

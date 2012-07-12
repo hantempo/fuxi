@@ -112,7 +112,8 @@ int main(int argc, char **argv)
     int iXangle = 0, iYangle = 0;
     int count = 0;
     float overdraw_ratio_sum = 0;
-    while (count < 150)
+    Image stencil_framebuffer(width, height, 1);
+    while (count < 180)
     {
         const Matrix4x4 rotateX = Matrix4x4::Rotate(Vector3(1, 0, 0), iXangle);
         const Matrix4x4 rotateY = Matrix4x4::Rotate(Vector3(0, 1, 0), iYangle);
@@ -125,12 +126,12 @@ int main(int argc, char **argv)
         GL_CHECK(glUniformMatrix4fv(locMV, 1, GL_FALSE, mv));
         GL_CHECK(glUniformMatrix4fv(locInvModel, 1, GL_FALSE, inv_model));
 
-        //if (count < 180)
-        //{
-            //iYangle += 2;
-            //if(iYangle >= 360) iYangle -= 360;
-            //if(iYangle < 0) iYangle += 360;
-        //}
+        if (count < 180)
+        {
+            iYangle += 2;
+            if(iYangle >= 360) iYangle -= 360;
+            if(iYangle < 0) iYangle += 360;
+        }
         //else
         //{
             //iXangle += 2;
@@ -145,9 +146,9 @@ int main(int argc, char **argv)
         geometry->draw();
 
         // Get overdraw info
-        //Image stencil_framebuffer(width, height, 1);
-        //GL_CHECK(glReadPixels(0, 0, width, height, GL_STENCIL_INDEX,
-            //GL_UNSIGNED_BYTE, stencil_framebuffer.pixels));
+        GL_CHECK(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+        GL_CHECK(glReadPixels(0, 0, width, height, GL_STENCIL_INDEX,
+                    GL_UNSIGNED_BYTE, stencil_framebuffer.pixels));
         //const float overdraw_ratio = stencil_framebuffer.overdraw_ratio();
         //overdraw_ratio_sum += overdraw_ratio;
         //char message[512];

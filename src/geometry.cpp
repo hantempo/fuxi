@@ -1,4 +1,5 @@
 #include "geometry.h"
+#include "scoped_ptr.h"
 #include "objLoader/objLoader.h"
 
 #include <stack>
@@ -30,7 +31,7 @@ Geometry::Geometry(const char *obj_filepath)
   tex_coord_channels(0),
   adj_tri_count(NULL), tri_offset(NULL), tri_list(NULL)
 {
-    objLoader *objData = new objLoader();
+    scoped_ptr<objLoader> objData(new objLoader);
     int loaded = objData->load(obj_filepath);
     FUXI_DEBUG_ASSERT(loaded, "Failed to load obj file");
 
@@ -87,8 +88,8 @@ Geometry::Geometry(const char *obj_filepath)
     const UInt8 totalChannels = (position_channels + normal_channels +
         tex_coord_channels);
     const UInt8 vertexStride = totalChannels * sizeof(attribute_type);
-    attribute_type *attributes = new attribute_type[v_count * totalChannels];
-    attribute_type *patrol = attributes;
+    scoped_array<attribute_type> attributes(new attribute_type[v_count * totalChannels]);
+    attribute_type *patrol = attributes.get();
     for (vertex_index_type i = 0; i < v_count; ++i)
     {
         *(patrol++) = positions[i][0];
@@ -101,8 +102,7 @@ Geometry::Geometry(const char *obj_filepath)
     GL_CHECK(glGenBuffers(1, &attributes_vbo));
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, attributes_vbo));
     GL_CHECK(glBufferData(GL_ARRAY_BUFFER, vertexStride * v_count,
-        attributes, GL_STATIC_DRAW));
-    delete [] attributes;
+        attributes.get(), GL_STATIC_DRAW));
 
     GL_CHECK(glGenBuffers(1, &indices_vbo));
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_vbo));
