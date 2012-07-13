@@ -3,9 +3,6 @@
 
 #include "common.h"
 
-#include <list>
-
-// A FIFO cache
 template <typename TYPE>
 class FIFOCache
 {
@@ -13,25 +10,32 @@ public:
     typedef TYPE index_type;
 
     FIFOCache(UInt8 size)
-    : cache_size(size), miss_count(0), load_count(0)
+    : _cache_size(size), _front(0), _end(0),
+      _miss_count(0), _load_count(0)
     {
+        _cache = new index_type[_cache_size];
+    }
+
+    ~FIFOCache()
+    {
+        delete [] _cache;
     }
 
     void load(index_type index)
     {
-        ++load_count;
+        ++_load_count;
 
-        typename std::list<index_type>::const_iterator citer = cache.begin();
-        for (; citer != cache.end(); ++citer)
+        for (UInt8 i = _front; i != _end; i = next(i))
         {
-            if (*citer == index)
+            if (_cache[i] == index)
                 return;
         }
 
-        ++miss_count;
-        if (cache.size() > cache_size)
-            cache.pop_front();
-        cache.push_back(index);
+        ++_miss_count;
+        if (full())
+            _front = next(_front);
+        _cache[_end] = index;
+        _end = next(_end);
     }
 
     template <typename Iter>
@@ -43,14 +47,27 @@ public:
         }
     }
 
-    UInt32 get_miss_count() const { return miss_count; }
-    UInt32 get_load_count() const { return load_count; }
+    UInt32 miss_count() const { return _miss_count; }
+    UInt32 load_count() const { return _load_count; }
 
 private:
-    std::list<index_type> cache;
-    UInt8 cache_size;
-    UInt32 miss_count;
-    UInt32 load_count;
+    UInt8 next(UInt8 i) const
+    {
+        if (++i == _cache_size)
+            i = 0;
+        return i;
+    }
+
+    bool empty() const { return _front == _end; }
+    bool full() const { return next(_end) == _front; }
+
+    index_type * _cache;
+    UInt8 _cache_size;
+    UInt8 _front;
+    UInt8 _end;
+
+    UInt32 _miss_count;
+    UInt32 _load_count;
 };
 
 #endif // _INCLUDE_CACHE_

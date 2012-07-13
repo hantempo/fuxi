@@ -59,8 +59,8 @@ int main(int argc, char **argv)
         FIFOCache<vertex_index_type> cache(POST_TRANSFORM_CACHE_SIZE);
         const vertex_index_type *v = geometry->index_list();
         cache.load(v, v + tri_count * 3);
-        const UInt32 miss_count = cache.get_miss_count();
-        const UInt32 load_count = cache.get_load_count();
+        const UInt32 miss_count = cache.miss_count();
+        const UInt32 load_count = cache.load_count();
 
         printf("\n");
         printf("Before optimization:\n");
@@ -76,8 +76,8 @@ int main(int argc, char **argv)
         FIFOCache<vertex_index_type> cache(POST_TRANSFORM_CACHE_SIZE);
         const vertex_index_type *v = geometry->index_list();
         cache.load(v, v + tri_count * 3);
-        const UInt32 miss_count = cache.get_miss_count();
-        const UInt32 load_count = cache.get_load_count();
+        const UInt32 miss_count = cache.miss_count();
+        const UInt32 load_count = cache.load_count();
 
         printf("\n");
         printf("After optimization:\n");
