@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+set (CMAKE_BUILD_TYPE Debug)
+
 if (ARM)
     set (CMAKE_C_COMPILER arm-none-linux-gnueabi-gcc)
     set (CMAKE_CXX_COMPILER arm-none-linux-gnueabi-g++)
